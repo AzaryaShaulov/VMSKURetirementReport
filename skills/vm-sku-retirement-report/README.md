@@ -7,7 +7,7 @@ redeploys or otherwise changes a VM and never requests a quota increase.
 
 This file is part of the skill folder and of the release ZIP. The full documentation, the screenshots and a sample
 report are in the source repository:
-<https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport>
+<https://github.com/AzaryaShaulov/VMSKURetirementReport>
 
 > **This tool is provided "AS IS," without warranties or guarantees.** It is independently developed, is not an
 > official Microsoft product, and is not supported or endorsed by Microsoft. Findings, retirement timelines, SKU

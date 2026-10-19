@@ -1,5 +1,6 @@
 ---
-applyTo: "Assessments/VMSKURetirementReport/**"
+description: "Use when accessing or assessing Azure tenants and resources. Requires strictly read-only operations."
+applyTo: "**"
 ---
 
 # Azure Tenant Read-Only Copilot Instructions

@@ -13,9 +13,13 @@ Security fixes are released for the latest minor version only.
 
 **Do not open a public issue for security problems.**
 
-Report privately through GitHub's
-[private vulnerability reporting](https://docs.github.com/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability)
+When enabled, use this repository's
+[private vulnerability reporting form](https://github.com/AzaryaShaulov/VMSKURetirementReport/security/advisories/new)
 (**Security** tab > **Report a vulnerability**).
+
+**Private vulnerability reporting is not enabled yet for this standalone repository.** Until a maintainer enables and
+verifies it, the form is unavailable. Do not submit vulnerability details through public issues or the bug-report form.
+There is no verified alternative private reporting channel documented here.
 
 Please include:
 
@@ -24,6 +28,13 @@ Please include:
 - the impact you observed or expect.
 
 You should receive an acknowledgement within 5 business days. Coordinated disclosure timelines are agreed case by case.
+
+### Maintainer setup
+
+A repository owner must enable private vulnerability reporting in **Settings > Security > Code security**, then verify
+the reporting form while signed in. Follow GitHub's
+[enablement instructions](https://docs.github.com/en/code-security/security-advisories/working-with-repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository).
+Remove the unavailable notice above only after verification. Changing the URL alone does not enable reporting.
 
 ## Security design
 

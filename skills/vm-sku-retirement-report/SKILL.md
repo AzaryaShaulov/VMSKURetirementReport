@@ -42,7 +42,7 @@ analysis of actual spend (use `cost-optimization` / `cost-analysis`).
 | Azure CLI signed in to the target tenant | `az account show` (else `az login --tenant <tenant>`) |
 | Resource Graph extension | `az extension add --name resource-graph` |
 | RBAC | **Reader** on the subscriptions. Rightsizing: **Monitoring Reader**. Advisor/Service Health corroboration is best-effort |
-| Tests (optional) | In a source checkout, run `Assessments/VMSKURetirementReport/build.ps1 -Task Bootstrap,Test` from the Azure repository root; the repository locks and verifies the exact Pester version |
+| Tests (optional) | In a source checkout, run `.\build.ps1 -Task Bootstrap,Test` from the repository root; the repository locks and verifies the exact Pester version. Tests are not included in the release ZIP |
 
 ## Workflow
 

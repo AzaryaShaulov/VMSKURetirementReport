@@ -7,7 +7,7 @@ $script:DisclaimerWarranty = 'This assessment and its recommendations are provid
 $script:DisclaimerIndependence = 'This independently developed tool is not an official Microsoft product and is not supported or endorsed by Microsoft.'
 $script:DisclaimerValidation = 'Findings, retirement timelines, SKU compatibility, and modernization recommendations are informational only. Users must verify all recommendations, regional availability, quotas, pricing, VM generation, storage compatibility, and migration requirements against current official Microsoft documentation before implementing production changes.'
 $script:Disclaimer = "$script:DisclaimerWarranty $script:DisclaimerIndependence`n`n$script:DisclaimerValidation"
-$script:RepositoryUrl = 'https://github.com/AzaryaShaulov/Azure'
+$script:RepositoryUrl = 'https://github.com/AzaryaShaulov/VMSKURetirementReport'
 # The name shown in the headers, titles and footers of the reports (the tool and its files keep the name VMSKURetirementReport).
 $script:ReportName = 'Azure VM SKU Retirement Report'
 

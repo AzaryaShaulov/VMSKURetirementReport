@@ -1,0 +1,9 @@
+{
+  "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+  "powershell.codeFormatting.preset": "OTBS",
+  "chat.instructionsFilesLocations": {
+    "instructions": true
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true
+}

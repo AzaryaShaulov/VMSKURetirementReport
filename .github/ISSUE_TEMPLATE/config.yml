@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/AzaryaShaulov/VMSKURetirementReport/security/advisories/new
+    about: Private reporting requires maintainer enablement. See SECURITY.md for availability; do not post vulnerability details publicly.
+  - name: Microsoft VM size retirement announcements
+    url: https://learn.microsoft.com/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions
+    about: The authoritative source for Azure VM size retirement dates.

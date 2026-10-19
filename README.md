@@ -1,6 +1,6 @@
 # VMSKURetirementReport
 
-[![CI](https://github.com/AzaryaShaulov/Azure/actions/workflows/vm-sku-retirement-report-ci.yml/badge.svg)](https://github.com/AzaryaShaulov/Azure/actions/workflows/vm-sku-retirement-report-ci.yml)
+[![CI](https://github.com/AzaryaShaulov/VMSKURetirementReport/actions/workflows/vm-sku-retirement-report-ci.yml/badge.svg)](https://github.com/AzaryaShaulov/VMSKURetirementReport/actions/workflows/vm-sku-retirement-report-ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![PowerShell 7.2+](https://img.shields.io/badge/PowerShell-7.2%2B-5391FE)
 ![Read-only](https://img.shields.io/badge/Azure-read--only-2e9e5b)
@@ -93,7 +93,7 @@ row itself) to open a tinted block under it with what to do, what changes, what 
 `-ExtendedDetails` to also print the facts summary (status, action, targets, path, quota), the confidence and readiness
 explanations, the mandatory requirement checks and every evaluated size. Badge labels wrap on narrow screens, and VM
 details appear in print.
-HTML report footers and Markdown reports include a **Source repository** link to this project's parent repository.
+HTML report footers and Markdown reports include a **Source repository** link to this standalone repository.
 
 ## Local use
 
@@ -145,17 +145,17 @@ GitHub Copilot and open the repository you work in.
 ### Step 2 - Install the skill
 
 ```bash
-npx skills add https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/skills/vm-sku-retirement-report -a github-copilot
+npx skills add https://github.com/AzaryaShaulov/VMSKURetirementReport/tree/main/skills/vm-sku-retirement-report -a github-copilot
 ```
 
 This places the skill under `.github/skills/vm-sku-retirement-report/`. For a user-wide GitHub Copilot installation:
 
 ```bash
-npx skills add https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/skills/vm-sku-retirement-report -g -a github-copilot
+npx skills add https://github.com/AzaryaShaulov/VMSKURetirementReport/tree/main/skills/vm-sku-retirement-report -g -a github-copilot
 ```
 
 If you are working from a source checkout instead, copy the complete
-`Assessments/VMSKURetirementReport/skills/vm-sku-retirement-report/` folder to
+`skills/vm-sku-retirement-report/` folder to
 `.github/skills/vm-sku-retirement-report/` in the repository where you want to use it.
 
 ### Step 3 - Sign in to Azure
@@ -188,10 +188,10 @@ quota changes.
 The same skill works with any Agent Skills client (Claude Code, Cursor, Codex, ...):
 
 ```bash
-npx skills add https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/skills/vm-sku-retirement-report
+npx skills add https://github.com/AzaryaShaulov/VMSKURetirementReport/tree/main/skills/vm-sku-retirement-report
 ```
 
-Or copy the complete `Assessments/VMSKURetirementReport/skills/vm-sku-retirement-report/` folder manually to one of:
+Or copy the complete `skills/vm-sku-retirement-report/` folder manually to one of:
 
 | Agent | Project scope | User scope |
 |---|---|---|
@@ -217,18 +217,18 @@ reports in a specific location.
 
 Download the current customer package and its checksum directly from this repository:
 
-- [Download VMSKURetirementReport v1.2.3 ZIP](https://raw.githubusercontent.com/AzaryaShaulov/Azure/main/Assessments/VMSKURetirementReport/dist/VMSKURetirementReport-v1.2.3.zip)
-- [Download VMSKURetirementReport v1.2.3 SHA-256 checksum](https://raw.githubusercontent.com/AzaryaShaulov/Azure/main/Assessments/VMSKURetirementReport/dist/VMSKURetirementReport-v1.2.3.zip.sha256)
+- [Download VMSKURetirementReport v1.2.3 ZIP](https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3.zip)
+- [Download VMSKURetirementReport v1.2.3 SHA-256 checksum](https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3.zip.sha256)
 
 With PowerShell:
 
 ```powershell
 Set-Location ~\Downloads
 Invoke-WebRequest `
-  -Uri https://raw.githubusercontent.com/AzaryaShaulov/Azure/main/Assessments/VMSKURetirementReport/dist/VMSKURetirementReport-v1.2.3.zip `
+  -Uri https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3.zip `
   -OutFile VMSKURetirementReport-v1.2.3.zip
 Invoke-WebRequest `
-  -Uri https://raw.githubusercontent.com/AzaryaShaulov/Azure/main/Assessments/VMSKURetirementReport/dist/VMSKURetirementReport-v1.2.3.zip.sha256 `
+  -Uri https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3.zip.sha256 `
   -OutFile VMSKURetirementReport-v1.2.3.zip.sha256
 ```
 
@@ -508,10 +508,9 @@ Details: [methodology](skills/vm-sku-retirement-report/references/methodology.md
 
 ## Development
 
-From the Azure repository root:
+From this repository root:
 
 ```powershell
-Set-Location Assessments/VMSKURetirementReport
 ./build.ps1                        # Bootstrap, Lint, Version, Test (no Azure access needed)
 ./build.ps1 -Task Sample           # regenerate all sample reports offline with modernization and default pricing
 ./build.ps1 -Task SampleDiff       # check that the committed sample is what a fresh build writes (changes nothing)
@@ -522,6 +521,9 @@ Published customer packages are retained in [`dist/`](dist/). Commit the version
 holds the skill without its tests, plus a README, the changelog, the license and the third-party notices.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Security reports go through [SECURITY.md](SECURITY.md).
+
+The CI badge above uses this repository's workflow. It becomes available after the workflow configuration is published
+to `main`; see [standalone repository setup](CONTRIBUTING.md#standalone-repository-setup-maintainers).
 
 ## License
 

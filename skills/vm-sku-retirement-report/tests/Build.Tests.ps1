@@ -16,6 +16,59 @@ BeforeAll {
     }
 }
 
+Describe 'Standalone repository configuration' {
+    It 'uses standalone paths in CI and release workflows' {
+        foreach ($name in 'vm-sku-retirement-report-ci.yml', 'vm-sku-retirement-report-release.yml') {
+            $workflow = Get-Content (Join-Path $ProjectRoot ".github/workflows/$name") -Raw
+            $workflow | Should -Not -Match 'Assessments/VMSKURetirementReport'
+        }
+        $ci = Get-Content (Join-Path $ProjectRoot '.github/workflows/vm-sku-retirement-report-ci.yml') -Raw
+        $ci | Should -Not -Match '(?m)^\s+paths(-ignore)?:'
+    }
+
+    It 'provides a default pull request template with the root build command' {
+        $template = Join-Path $ProjectRoot '.github/pull_request_template.md'
+        $template | Should -Exist
+        Get-Content $template -Raw | Should -Match ([regex]::Escape('.\build.ps1'))
+    }
+
+    It 'points editor analysis and instruction discovery at existing repository files' {
+        $settings = Get-Content (Join-Path $ProjectRoot '.vscode/settings.json') -Raw | ConvertFrom-Json
+        Join-Path $ProjectRoot $settings.'powershell.scriptAnalysis.settingsPath' | Should -Exist
+        $settings.'chat.instructionsFilesLocations'.instructions | Should -BeTrue
+        $instruction = Join-Path $ProjectRoot 'instructions/vm-sku-retirement-report.instructions.md'
+        $instruction | Should -Exist
+        Get-Content $instruction -Raw | Should -Match '(?m)^applyTo: "\*\*"$'
+    }
+
+    It 'routes private vulnerability reports to this repository' {
+        $config = Get-Content (Join-Path $ProjectRoot '.github/ISSUE_TEMPLATE/config.yml') -Raw
+        $config | Should -Match ([regex]::Escape('https://github.com/AzaryaShaulov/VMSKURetirementReport/security/advisories/new'))
+    }
+
+    It 'keeps active documentation free of parent-repository URLs and paths' {
+        foreach ($name in 'README.md', 'SUPPORT.md', 'SECURITY.md', 'CODE_OF_CONDUCT.md', 'CONTRIBUTING.md',
+            'THIRD-PARTY-NOTICES.md', 'skills/vm-sku-retirement-report/README.md', 'skills/vm-sku-retirement-report/SKILL.md') {
+            $content = Get-Content (Join-Path $ProjectRoot $name) -Raw
+            $content | Should -Not -Match 'AzaryaShaulov/Azure|Assessments/VMSKURetirementReport' -Because "$name describes this standalone repository"
+        }
+    }
+
+    It 'uses standalone skill installation, paired downloads and CI badge URLs' {
+        $readme = Get-Content (Join-Path $ProjectRoot 'README.md') -Raw
+        $readme | Should -Match ([regex]::Escape('npx skills add https://github.com/AzaryaShaulov/VMSKURetirementReport/tree/main/skills/vm-sku-retirement-report'))
+        $download = "https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v$(Get-RepoVersion).zip"
+        foreach ($url in $download, "$download.sha256") { $readme | Should -Match ([regex]::Escape($url)) }
+        $workflow = 'https://github.com/AzaryaShaulov/VMSKURetirementReport/actions/workflows/vm-sku-retirement-report-ci.yml'
+        $readme | Should -Match ([regex]::Escape("[![CI]($workflow/badge.svg)]($workflow)"))
+    }
+
+    It 'uses standalone development history without rewriting historical release links' {
+        $changelog = Get-Content (Join-Path $ProjectRoot 'CHANGELOG.md') -Raw
+        $changelog | Should -Match '(?m)^\[Unreleased\]: https://github\.com/AzaryaShaulov/VMSKURetirementReport/commits/main\r?$'
+    }
+}
+
 Describe 'Release package' {
     BeforeAll {
         $script:Dist = Join-Path $TestDrive 'dist'
@@ -49,6 +102,26 @@ Describe 'Release package' {
         $extract = Join-Path $TestDrive 'extract-changelog'
         Expand-Archive -LiteralPath $Zip -DestinationPath $extract
         (Get-Content (Join-Path $extract 'vm-sku-retirement-report/CHANGELOG.md') -Raw) | Should -Be (Get-Content (Join-Path $ProjectRoot 'CHANGELOG.md') -Raw)
+    }
+
+    It 'ships standalone documentation and report-source links in newly built packages' {
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($Zip)
+        try {
+            foreach ($name in 'README.md', 'SKILL.md', 'scripts/modules/Output.psm1') {
+                $entry = $archive.GetEntry("vm-sku-retirement-report/$name")
+                $reader = [IO.StreamReader]::new($entry.Open())
+                try { $content = $reader.ReadToEnd() }
+                finally { $reader.Dispose() }
+                if ($name -eq 'SKILL.md') {
+                    $content | Should -Match ([regex]::Escape('.\build.ps1 -Task Bootstrap,Test'))
+                }
+                else {
+                    $content | Should -Match ([regex]::Escape('https://github.com/AzaryaShaulov/VMSKURetirementReport'))
+                }
+                $content | Should -Not -Match 'AzaryaShaulov/Azure|Assessments/VMSKURetirementReport'
+            }
+        }
+        finally { $archive.Dispose() }
     }
 
     It 'has a README with the disclaimer that lists everything at the top level of the package' {

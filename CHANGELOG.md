@@ -6,6 +6,18 @@ Only user-visible changes are listed; the full history is in the Git log.
 
 ## [Unreleased]
 
+### Fixed
+
+- CI, release workflows, editor settings and Copilot instruction matching now use the standalone repository layout.
+  CI runs for all pull requests and pushes to `main`.
+- The PII scanner recognizes the root-level synthetic sample report, and its self-test uses the same layout.
+- The default pull request template uses the root build command, and private vulnerability reports point to this repository.
+  Contributor setup instructions now clone and build the standalone repository.
+- Active installation, download, support, CI and report-source links now point to the standalone repository, with
+  root-relative source-checkout commands. Historical release links and published packages are preserved.
+- The unavailable design-attribution repository link now uses the author's project overview, and private-reporting
+  guidance explicitly documents the required owner enablement instead of assuming the form is available.
+
 ## [1.2.3] - 2026-10-17
 
 The first release since 1.0.0. It includes everything listed for 1.1.0, 1.1.2 and 1.2.0 (never released separately).
@@ -128,7 +140,7 @@ First public release.
 - `build.ps1`, an offline Pester suite with a mock Azure CLI, a reproducible sample report, CI and a tag-driven release
   workflow.
 
-[Unreleased]: https://github.com/AzaryaShaulov/Azure/commits/main/Assessments/VMSKURetirementReport
+[Unreleased]: https://github.com/AzaryaShaulov/VMSKURetirementReport/commits/main
 [1.2.3]: https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/dist/VMSKURetirementReport-v1.2.3.zip
 [1.2.0]: https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/dist
 [1.1.2]: https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/dist

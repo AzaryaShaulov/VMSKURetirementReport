@@ -28,10 +28,10 @@ Describe 'End-to-end assessment (mock Azure)' {
     }
     It 'links the source repository from every human-readable report' {
         foreach ($file in Get-ChildItem $Out -Filter '*.html') {
-            (Get-Content $file.FullName -Raw) | Should -Match '<a href="https://github.com/AzaryaShaulov/Azure" target="_blank" rel="noopener noreferrer">Source repository</a>'
+            (Get-Content $file.FullName -Raw) | Should -Match '<a href="https://github.com/AzaryaShaulov/VMSKURetirementReport" target="_blank" rel="noopener noreferrer">Source repository</a>'
         }
         foreach ($name in 'executive-summary.md', 'detailed-report.md') {
-            (Get-Content (Join-Path $Out $name) -Raw) | Should -Match '\[Source repository\]\(https://github.com/AzaryaShaulov/Azure\)'
+            (Get-Content (Join-Path $Out $name) -Raw) | Should -Match '\[Source repository\]\(https://github.com/AzaryaShaulov/VMSKURetirementReport\)'
         }
     }
     It 'includes one standard disclaimer in all supported report formats' {

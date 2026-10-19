@@ -41,7 +41,8 @@ used only to build the sample report offline. Prices are informational and may b
 ## Design acknowledgement
 
 The visual style of the HTML report (application header, dashboard tiles, table styling) was inspired by the
-[Azure FinOps Multitool](https://github.com/z-larsen/Azure-FinOps-Multitool) GUI by Zac Larsen (MIT License). No
+[Azure FinOps Multitool](https://zlarsen.cloud/posts/2026-4-16-azure-finops-multitool/) GUI by Zac Larsen (MIT License). The
+link is the author's project overview; the original GitHub repository is currently unavailable. No
 code from that project is included.
 
 ## Trademarks

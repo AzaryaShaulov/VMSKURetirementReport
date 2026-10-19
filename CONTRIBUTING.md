@@ -37,8 +37,8 @@ the sample and fails when it differs from `examples/sample-report` (see **Report
 runs the browser smoke test below in Edge.
 
 ```powershell
-git clone https://github.com/AzaryaShaulov/Azure.git
-cd Azure/Assessments/VMSKURetirementReport
+git clone https://github.com/AzaryaShaulov/VMSKURetirementReport.git
+cd VMSKURetirementReport
 ./build.ps1                    # Bootstrap, Lint, Version, Test
 ./build.ps1 -Task Sample       # regenerate examples/sample-report (with --check-modernization)
 ./build.ps1 -Task SampleDiff   # check that the committed sample is what a fresh build writes; changes nothing
@@ -94,13 +94,28 @@ node browser-smoke.js ../examples/sample-report msedge firefox webkit
 - `./build.ps1` must pass. CI runs the same tasks on a Windows runner.
 - Add an entry under **Unreleased** in `CHANGELOG.md`.
 
+## Standalone repository setup (maintainers)
+
+The standalone CI badge and editor configuration depend on the root-level `.github/` and `.vscode/` files being
+committed and published with the project. After publishing the workflows to `main`, verify that
+[VMSKURetirementReport CI](https://github.com/AzaryaShaulov/VMSKURetirementReport/actions/workflows/vm-sku-retirement-report-ci.yml)
+is registered and the README badge reflects this repository, not the parent project.
+
+Private vulnerability reporting requires a separate owner action; see [SECURITY.md](SECURITY.md#maintainer-setup).
+Publishing an issue-template link does not enable the reporting form.
+
+Keep released ZIPs and their checksums immutable. Link corrections in source, reference documents and the generated
+sample ship in the next release; use `-DistPath` to validate an unpublished package without replacing a released ZIP.
+Historical release links and cached Microsoft evidence may still point to their original sources and must not be
+rewritten as part of an active-link cleanup.
+
 ## Releasing (maintainers)
 
 1. Bump `$script:ToolVersion` in `scripts/modules/Common.psm1` and `metadata.version` in `SKILL.md`.
 2. Move the **Unreleased** notes into a new `## [x.y.z] - YYYY-MM-DD` section in `CHANGELOG.md`.
-3. From `Assessments/VMSKURetirementReport`, run `./build.ps1 -Task Version, Test, SampleDiff, Package`.
+3. From the repository root, run `./build.ps1 -Task Version, Test, SampleDiff, Package`.
 4. Verify and commit `dist/VMSKURetirementReport-vX.Y.Z.zip` and its `.zip.sha256` checksum so customers can download
    both files directly from the repository.
 5. Tag `vm-sku-retirement-report-vX.Y.Z` and push the tag. The tag carries the project name so that a tag for another
-   component of this repository never starts the release; the parent repository's Release workflow checks that it matches
+   project never starts the release; the repository's Release workflow checks that it matches
    the tool version and also publishes the same files as GitHub release assets.
