@@ -20,7 +20,7 @@ Describe 'Standalone repository configuration' {
     It 'uses standalone paths in CI and release workflows' {
         foreach ($name in 'vm-sku-retirement-report-ci.yml', 'vm-sku-retirement-report-release.yml') {
             $workflow = Get-Content (Join-Path $ProjectRoot ".github/workflows/$name") -Raw
-            $workflow | Should -Not -Match 'Assessments/VMSKURetirementReport'
+            $workflow | Should -Not -Match 'Assessments[\\/]VMSKURetirementReport'
         }
         $ci = Get-Content (Join-Path $ProjectRoot '.github/workflows/vm-sku-retirement-report-ci.yml') -Raw
         $ci | Should -Not -Match '(?m)^\s+paths(-ignore)?:'
@@ -46,11 +46,20 @@ Describe 'Standalone repository configuration' {
         $config | Should -Match ([regex]::Escape('https://github.com/AzaryaShaulov/VMSKURetirementReport/security/advisories/new'))
     }
 
+    It 'limits file-scoped PII exceptions to files in this repository' {
+        $allowlist = Get-Content (Join-Path $ProjectRoot '.github/pii-allowlist.json') -Raw | ConvertFrom-Json
+        foreach ($entry in $allowlist.entries) {
+            if ($entry.PSObject.Properties.Name -contains 'file' -and $entry.file) {
+                Join-Path $ProjectRoot $entry.file | Should -Exist
+            }
+        }
+    }
+
     It 'keeps active documentation free of parent-repository URLs and paths' {
         foreach ($name in 'README.md', 'SUPPORT.md', 'SECURITY.md', 'CODE_OF_CONDUCT.md', 'CONTRIBUTING.md',
             'THIRD-PARTY-NOTICES.md', 'skills/vm-sku-retirement-report/README.md', 'skills/vm-sku-retirement-report/SKILL.md') {
             $content = Get-Content (Join-Path $ProjectRoot $name) -Raw
-            $content | Should -Not -Match 'AzaryaShaulov/Azure|Assessments/VMSKURetirementReport' -Because "$name describes this standalone repository"
+            $content | Should -Not -Match 'AzaryaShaulov/Azure|Assessments[\\/]VMSKURetirementReport' -Because "$name describes this standalone repository"
         }
     }
 
@@ -118,7 +127,7 @@ Describe 'Release package' {
                 else {
                     $content | Should -Match ([regex]::Escape('https://github.com/AzaryaShaulov/VMSKURetirementReport'))
                 }
-                $content | Should -Not -Match 'AzaryaShaulov/Azure|Assessments/VMSKURetirementReport'
+                $content | Should -Not -Match 'AzaryaShaulov/Azure|Assessments[\\/]VMSKURetirementReport'
             }
         }
         finally { $archive.Dispose() }

@@ -1,4 +1,4 @@
-# VMSKURetirementReport
+# Azure VM SKU retirement  Report
 
 Read-only assessment of the Azure VMs in your tenant that run on VM sizes Microsoft has retired or scheduled for
 retirement. It recommends the closest current-generation, same-CPU-vendor replacement, checks regional availability,

@@ -1,4 +1,4 @@
-# VMSKURetirementReport
+# Azure VM SKU retirement  Report
 
 [![CI](https://github.com/AzaryaShaulov/VMSKURetirementReport/actions/workflows/vm-sku-retirement-report-ci.yml/badge.svg)](https://github.com/AzaryaShaulov/VMSKURetirementReport/actions/workflows/vm-sku-retirement-report-ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -373,9 +373,9 @@ Invoke-Item C:\Reports\vm-sku\full-assessment\index.html
   .\Invoke-VMSKURetirementReport.ps1 -SaveSnapshot -OutputPath C:\Reports\vm-sku\capture
   .\Invoke-VMSKURetirementReport.ps1 -FromSnapshot C:\Reports\vm-sku\capture --check-modernization -OfflineCatalog -OutputPath C:\Reports\vm-sku\replay
   ```
-- Running from a source checkout instead of the ZIP? From the Azure repository root, change to
-  `Assessments\VMSKURetirementReport\skills\vm-sku-retirement-report\scripts`; the script-name examples above then work
-  unchanged. Default reports go to `Assessments\VMSKURetirementReport\reports\`.
+- Running from a source checkout instead of the ZIP? From this repository root, change to
+  `skills\vm-sku-retirement-report\scripts`; the script-name examples above then work
+  unchanged. Default reports go to `reports\` under this repository root.
 
 </details>
 

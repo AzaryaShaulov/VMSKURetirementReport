@@ -17,6 +17,9 @@ Only user-visible changes are listed; the full history is in the Git log.
   root-relative source-checkout commands. Historical release links and published packages are preserved.
 - The unavailable design-attribution repository link now uses the author's project overview, and private-reporting
   guidance explicitly documents the required owner enablement instead of assuming the form is available.
+- Remaining Windows source-checkout paths now use the standalone root, and migration regression checks recognize both
+  path separators. Security reporting guidance no longer claims that the now-enabled private reporting form is disabled.
+- Removed an obsolete PII-scan exception for an Azure Arc dashboard that was not migrated to this repository.
 
 ## [1.2.3] - 2026-10-17
 
