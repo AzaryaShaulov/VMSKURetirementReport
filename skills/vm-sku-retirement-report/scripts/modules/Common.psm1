@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 
 # Single source of truth for the tool version (kept in sync with SKILL.md metadata and CHANGELOG.md by tests/build).
-$script:ToolVersion = '1.2.3'
+$script:ToolVersion = '1.2.3c'
 
 function Get-ToolVersion { return $script:ToolVersion }
 

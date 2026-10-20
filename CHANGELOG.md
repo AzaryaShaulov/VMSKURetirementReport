@@ -6,6 +6,16 @@ Only user-visible changes are listed; the full history is in the Git log.
 
 ## [Unreleased]
 
+## [1.2.3c] - 2026-10-20
+
+### Changed
+
+- The Codacy workflow pins `actions/checkout` and `github/codeql-action/upload-sarif` to full commit SHAs, matching the
+  other workflows.
+- Version checks accept an alphanumeric suffix such as `1.2.3c` (not strict SemVer).
+- External references rechecked: the GitHub commits link resolves; the two Intel reference URLs in the processor
+  catalog return HTTP 403 to automated clients and could not be verified, so they were left unchanged.
+
 ### Fixed
 
 - CI, release workflows, editor settings and Copilot instruction matching now use the standalone repository layout.

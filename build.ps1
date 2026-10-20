@@ -111,9 +111,9 @@ function Invoke-Lint {
 function Invoke-VersionCheck {
     $v = Get-RepoVersion
     $skillMd = Get-Content (Join-Path $skill 'SKILL.md') -Raw
-    $m = [regex]::Match($skillMd, '(?m)^\s+version:\s*"?([0-9]+\.[0-9]+\.[0-9]+)"?\s*$')
+    $m = [regex]::Match($skillMd, '(?m)^\s+version:\s*"?([0-9]+\.[0-9]+\.[0-9]+[A-Za-z0-9.-]*)"?\s*$')
     $changelog = Get-Content (Join-Path $repo 'CHANGELOG.md') -Raw
-    $c = [regex]::Match($changelog, '(?m)^## \[([0-9]+\.[0-9]+\.[0-9]+)\]')
+    $c = [regex]::Match($changelog, '(?m)^## \[([0-9]+\.[0-9]+\.[0-9]+[A-Za-z0-9.-]*)\]')
     $problems = @()
     if (-not $m.Success -or $m.Groups[1].Value -ne $v) { $problems += "SKILL.md metadata.version '$($m.Groups[1].Value)' <> module '$v'" }
     if (-not $c.Success -or $c.Groups[1].Value -ne $v) { $problems += "CHANGELOG.md latest '$($c.Groups[1].Value)' <> module '$v'" }

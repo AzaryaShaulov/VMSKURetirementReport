@@ -1591,9 +1591,9 @@ Describe 'Report name and table columns' {
 
     It 'calls the report "Azure VM SKU Retirement Report" in the header, title and footer of every page' {
         foreach ($html in $ReportIndex, $ReportSub) {
-            $html | Should -Match '<strong>Azure VM SKU Retirement Report</strong><small>Assessment report v\d+\.\d+\.\d+</small>'
+            $html | Should -Match '<strong>Azure VM SKU Retirement Report</strong><small>Assessment report v\d+\.\d+\.\d+[A-Za-z0-9.-]*</small>'
             $html | Should -Match '<title>Azure VM SKU Retirement Report - '
-            $html | Should -Match '<footer>.*Azure VM SKU Retirement Report v\d+\.\d+\.\d+'
+            $html | Should -Match '<footer>.*Azure VM SKU Retirement Report v\d+\.\d+\.\d+[A-Za-z0-9.-]*'
             $html | Should -Not -Match 'VMSKURetirementReport v\d|<strong>VMSKURetirementReport</strong>|<title>VMSKURetirementReport'
         }
         $ReportIndex | Should -Match '<span class="report-context">Azure VM SKU Retirement Report</span>'
@@ -2776,7 +2776,7 @@ Describe 'Quota regressions found against live Azure data' {
 Describe 'Release hygiene' {
     It 'keeps SKILL.md metadata.version in sync with the module version' {
         $skill = Get-Content (Join-Path $Root 'SKILL.md') -Raw
-        $m = [regex]::Match($skill, '(?m)^\s+version:\s*"?([0-9]+\.[0-9]+\.[0-9]+)"?\s*$')
+        $m = [regex]::Match($skill, '(?m)^\s+version:\s*"?([0-9]+\.[0-9]+\.[0-9]+[A-Za-z0-9.-]*)"?\s*$')
         $m.Success | Should -BeTrue
         $m.Groups[1].Value | Should -Be (Get-ToolVersion)
     }
