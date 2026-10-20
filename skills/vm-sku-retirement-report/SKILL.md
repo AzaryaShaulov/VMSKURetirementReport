@@ -11,7 +11,7 @@ description: >-
   For quota increase requests afterwards use azure-quotas; for general VM sizing/pricing use azure-compute.
 license: MIT
 metadata:
-  version: "1.2.3c"
+  version: "1.2.3-c"
   requires: "PowerShell 7.2+, Azure CLI 2.60+ with the resource-graph extension, Reader role"
 ---
 

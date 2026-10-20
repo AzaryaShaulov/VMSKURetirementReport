@@ -118,4 +118,6 @@ rewritten as part of an active-link cleanup.
    both files directly from the repository.
 5. Tag `vm-sku-retirement-report-vX.Y.Z` and push the tag. The tag carries the project name so that a tag for another
    project never starts the release; the repository's Release workflow checks that it matches
-   the tool version and also publishes the same files as GitHub release assets.
+   the tool version, requires the tagged commit to be reachable from `main`, and also publishes the same files as GitHub release assets.
+   Repository owners should import `.github/rulesets/release-tag-protection.json` (Settings > Rules > Rulesets) so
+   release tags cannot be deleted or moved. Use a SemVer pre-release suffix such as `1.2.3-c`, not `1.2.3c`.

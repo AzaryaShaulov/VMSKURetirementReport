@@ -217,26 +217,26 @@ reports in a specific location.
 
 Download the current customer package and its checksum directly from this repository:
 
-- [Download VMSKURetirementReport v1.2.3c ZIP](https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3c.zip)
-- [Download VMSKURetirementReport v1.2.3c SHA-256 checksum](https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3c.zip.sha256)
+- [Download VMSKURetirementReport v1.2.3-c ZIP](https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3-c.zip)
+- [Download VMSKURetirementReport v1.2.3-c SHA-256 checksum](https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3-c.zip.sha256)
 
 With PowerShell:
 
 ```powershell
 Set-Location ~\Downloads
 Invoke-WebRequest `
-  -Uri https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3c.zip `
-  -OutFile VMSKURetirementReport-v1.2.3c.zip
+  -Uri https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3-c.zip `
+  -OutFile VMSKURetirementReport-v1.2.3-c.zip
 Invoke-WebRequest `
-  -Uri https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3c.zip.sha256 `
-  -OutFile VMSKURetirementReport-v1.2.3c.zip.sha256
+  -Uri https://raw.githubusercontent.com/AzaryaShaulov/VMSKURetirementReport/main/dist/VMSKURetirementReport-v1.2.3-c.zip.sha256 `
+  -OutFile VMSKURetirementReport-v1.2.3-c.zip.sha256
 ```
 
 ### Step 2 - Verify the checksum
 
 ```powershell
-$actual = (Get-FileHash .\VMSKURetirementReport-v1.2.3c.zip -Algorithm SHA256).Hash.ToLowerInvariant()
-$expected = (Get-Content .\VMSKURetirementReport-v1.2.3c.zip.sha256).Split()[0]
+$actual = (Get-FileHash .\VMSKURetirementReport-v1.2.3-c.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+$expected = (Get-Content .\VMSKURetirementReport-v1.2.3-c.zip.sha256).Split()[0]
 if ($actual -ne $expected) { throw 'Package checksum verification failed.' }
 Write-Host "Verified: SHA-256 checksum matches ($actual)" -ForegroundColor Green
 ```
@@ -251,8 +251,8 @@ default `RemoteSigned` execution policy refuses to load blocked unsigned scripts
 matches, unblock the ZIP **before** extracting it so the extracted files are not marked:
 
 ```powershell
-Unblock-File .\VMSKURetirementReport-v1.2.3c.zip
-Expand-Archive .\VMSKURetirementReport-v1.2.3c.zip -DestinationPath C:\Tools\VMSKURetirementReport -Force
+Unblock-File .\VMSKURetirementReport-v1.2.3-c.zip
+Expand-Archive .\VMSKURetirementReport-v1.2.3-c.zip -DestinationPath C:\Tools\VMSKURetirementReport -Force
 ```
 
 > If you already extracted the ZIP (for example with Windows Explorer **Extract All**, which copies the blocked

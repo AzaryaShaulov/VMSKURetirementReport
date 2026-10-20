@@ -2,7 +2,7 @@
 
 [Source repository](https://github.com/AzaryaShaulov/VMSKURetirementReport)
 
-Tenant: **Contoso (Sample)** (`22222222-2222-2222-2222-222222222222`) | As of: **2026-10-05** | Tool: Azure VM SKU Retirement Report v1.2.3c
+Tenant: **Contoso (Sample)** (`22222222-2222-2222-2222-222222222222`) | As of: **2026-10-05** | Tool: Azure VM SKU Retirement Report v1.2.3-c
 
 ## Subscription: contoso-prod
 
