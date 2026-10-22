@@ -17,6 +17,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  workflows:
+    name: Validate workflow configuration
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check workflows with checksum-verified actionlint
+        shell: pwsh
+        run: ./.github/scripts/Test-Workflows.ps1
+
   test:
     name: Lint and test (Windows)
     runs-on: windows-latest
@@ -67,7 +76,7 @@ jobs:
       - name: Install playwright-core (the library only; Edge is already on the runner)
         shell: pwsh
         working-directory: tools
-        run: npm install --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.64.0
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Open the sample report in Edge and check the collapsible VM details
         shell: pwsh
@@ -134,11 +143,20 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Package
+        id: package
         shell: pwsh
-        run: ./build.ps1 -Task Package
+        run: |
+          ./build.ps1 -Task Package
+          Import-Module ./skills/vm-sku-retirement-report/scripts/modules/Common.psm1 -Force -DisableNameChecking
+          $zip = "dist/VMSKURetirementReport-v$(Get-ToolVersion).zip"
+          foreach ($file in $zip, "$zip.sha256") {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing package artifact: $file" }
+          }
+          "zip=$zip" >> $env:GITHUB_OUTPUT
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: skill-package
+          if-no-files-found: error
           path: |
-            dist/*.zip
-            dist/*.zip.sha256
+            ${{ steps.package.outputs.zip }}
+            ${{ steps.package.outputs.zip }}.sha256

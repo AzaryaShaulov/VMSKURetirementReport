@@ -53,12 +53,13 @@ h3 { font-size: 1.05rem; margin: 1.4rem 0 .6rem; font-weight: 650; }
 .nowrap { white-space: nowrap; }
 
 /* Header */
-.hero { background: linear-gradient(90deg, #005ba1 0%, #0078d4 42%, #2b88d8 100%); color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .24); }
+.hero { background: #102d4f; color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .24); }
 .app-bar { min-height: 58px; display: flex; align-items: center; gap: 14px; padding: 10px 0; }
 .brand-lockup { display: flex; align-items: center; gap: 11px; white-space: nowrap; }
 .brand-lockup > span:last-child { display: grid; line-height: 1.15; }
 .brand-lockup strong { font-size: 1.08rem; }
 .brand-lockup small { color: #b3d7f2; font-size: .7rem; margin-top: 3px; }
+.version-link { color: inherit; }
 .brand-mark { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 6px; background: #fff; color: var(--accent); font-size: 1.25rem; box-shadow: 0 1px 3px rgba(0, 0, 0, .16); }
 .brand-divider { width: 1px; height: 32px; background: rgba(0, 69, 120, .7); }
 .report-context { color: #c7e0f4; font-size: .82rem; }
@@ -83,14 +84,14 @@ main.wrap { padding-top: 24px; padding-bottom: 40px; }
 .card { background: var(--surface); border: 1px solid #e5e5e5; border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 28px; margin: 0 0 20px; }
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
 .collapsible-section { padding: 0; overflow: hidden; }
-.collapsible-section > summary { cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: baseline; padding: 12px 20px; list-style: none; }
+.collapsible-section > summary { cursor: pointer; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1px 12px; align-items: baseline; padding: 4.4px 20px; line-height: 1.1; list-style: none; }
 .collapsible-section > summary::-webkit-details-marker { display: none; }
 .collapsible-section > summary::before { content: "\25B8"; color: var(--accent); font-size: 1.15rem; transition: transform .15s; }
 .collapsible-section[open] > summary::before { transform: rotate(90deg); }
 .collapsible-section[open] > summary { border-bottom: 1px solid var(--border); }
 .collapsible-section > summary:hover { background: var(--surface-2); }
-.section-heading { color: var(--text); font-size: 1.15rem; font-weight: 650; line-height: 1.3; }
-.section-intro { grid-column: 2; color: var(--text-2); font-size: .86rem; }
+.section-heading { color: var(--text); font-size: 1.15rem; font-weight: 650; line-height: 1.1; }
+.section-intro { grid-column: 2; color: var(--text-2); font-size: .86rem; line-height: 1.1; }
 .section-body { padding: 14px 20px 16px; }
 
 /* KPIs */
@@ -289,7 +290,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 18px; align-i
   .hero h1 { font-size: 1.7rem; }
   .card { padding: 20px 18px; }
   .collapsible-section { padding: 0; }
-  .collapsible-section > summary { padding: 17px 16px; gap: 8px 12px; }
+  .collapsible-section > summary { padding: 4.4px 16px; gap: 1px 12px; }
   .section-heading { font-size: 1.15rem; }
   .section-body { padding: 18px 16px; }
   .grid-2 { grid-template-columns: minmax(0, 1fr); }
@@ -381,13 +382,14 @@ dl.doc-links { margin: 0; font-size: .85rem; }
   tbody tr:hover { background: var(--accent-soft); }
 }
 .track { margin: 28px 0 8px; }
-.track-banner { display: flex; gap: 16px; align-items: flex-start; border-radius: var(--radius); padding: 18px 22px; margin: 0 0 16px; border: 1px solid; border-left-width: 8px; }
+.track-banner { display: flex; gap: 16px; align-items: flex-start; border-radius: var(--radius); padding: 9.35px 22px; margin: 0 0 16px; border: 1px solid; border-left-width: 8px; }
+.track-text { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; align-items: baseline; }
 .track-retirement .track-banner { background: var(--retire-soft); border-color: var(--retire); }
 .track-icon { font-size: 1.6rem; line-height: 1; font-weight: 700; }
 .track-retirement .track-icon, .track-retirement .track-part strong { color: var(--retire); }
-.track-part { display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
-.track-title { font-size: 1.35rem; font-weight: 700; margin: 2px 0 4px; }
-.track-desc { margin: 0; color: var(--text-2); }
+.track-part { display: block; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); line-height: 1.1; }
+.track-title { font-size: 1.35rem; font-weight: 700; margin: 0; line-height: 1.1; }
+.track-desc { grid-column: 1 / -1; margin: 0; color: var(--text-2); line-height: 1.1; }
 .track-retirement > .card { border-left: 6px solid var(--retire); }
 
 /* Grouped navigation */

@@ -187,6 +187,10 @@ Describe 'End-to-end assessment (mock Azure)' {
         foreach ($page in @(Get-ChildItem $Out -Filter '*.html')) {
             $html = Get-Content $page.FullName -Raw
             foreach ($id in 'upgrade-guidance', 'cross-vendor', 'sku-families', 'cpu-vendor', 'limitations') {
+                if ($page.Name -eq 'index.html' -and $id -ne 'upgrade-guidance') {
+                    $html | Should -Not -Match "id='$id'|href='#$id'"
+                    continue
+                }
                 $html | Should -Match "<details id='$id' class='card collapsible-section'>"
                 $html | Should -Not -Match "<details id='$id'[^>]+open"
             }
@@ -270,8 +274,8 @@ function global:Start-Sleep { param([int]`$Seconds) }
             @($rows | Where-Object { $_.CurrentMonthlyUSD -or $_.TargetMonthlyUSD }).Count | Should -Be 0
         }
         (Get-Content $requests -Raw) | Should -Not -Match "armRegionName eq 'westus3'"
-        (Get-Content (Join-Path $out 'index.html') -Raw) | Should -Match ">${Status}</span>"
         $html = Get-Content (Get-ChildItem $out -Filter 'contoso-prod-*.html').FullName -Raw
+        $html | Should -Match ">${Status}</span>"
         $failedVm = if ($FailedRegion -eq 'eastus2') { 'vm-ds3v2' } else { 'vm-d4sv3' }
         $failedRow = [regex]::Match($html, "(?s)<tr class='vm-summary-row[^']*'[^>]*><td>(<input[^>]+><label[^>]+>Details</label>)?<span class='strong'>$failedVm</span>.*?</tr>").Value
         $failedRow | Should -Not -BeNullOrEmpty

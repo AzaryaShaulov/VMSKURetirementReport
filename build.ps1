@@ -99,8 +99,9 @@ function Invoke-Bootstrap {
 function Invoke-Lint {
     $module = Get-LockedModule -Name PSScriptAnalyzer
     Import-Module $module.Path -Force
-    $findings = @(Invoke-ScriptAnalyzer -Path $repo -Recurse -Settings (Join-Path $repo 'PSScriptAnalyzerSettings.psd1') |
-            Where-Object { $_.ScriptPath -notmatch '[\\/](dist|examples|TestResults)[\\/]' })
+    $findings = @(Get-ChildItem -LiteralPath $repo -Recurse -File -Include '*.ps1', '*.psm1', '*.psd1' |
+            Where-Object { $_.FullName -notmatch '[\\/](dist|examples|TestResults|node_modules)[\\/]' } |
+            ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Settings (Join-Path $repo 'PSScriptAnalyzerSettings.psd1') })
     if ($findings.Count) {
         $findings | Format-Table Severity, RuleName, ScriptName, Line, Message -AutoSize -Wrap | Out-String -Width 220 | Write-Host
         throw "Lint: $($findings.Count) finding(s)."

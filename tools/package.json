@@ -1,0 +1,10 @@
+{
+  "name": "vmsku-report-browser-checks",
+  "private": true,
+  "scripts": {
+    "test": "node browser-smoke.js"
+  },
+  "devDependencies": {
+    "playwright-core": "1.64.0"
+  }
+}

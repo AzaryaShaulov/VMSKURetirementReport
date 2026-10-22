@@ -22,11 +22,16 @@ auditable wave plan in HTML, Markdown, CSV and JSON.
   Esv4 that Microsoft has *not* scheduled for retirement are reported as **optional modernization**, never as urgent
   migrations. When Microsoft does announce a date (as it did for Dv3/Dsv3/Ev3/Esv3, retiring 2029-11-15), the
   assessment follows the evidence.
-- **Nothing is guessed.** Unknowns are labelled `Unable to Verify` / `Unable to Confirm`, and each finding carries
-  its Microsoft source URL.
-- **Recommendations you can act on.** The tool keeps the CPU vendor and architecture, never downsizes, enforces
+- **Evidence quality is explicit.** Unknowns are labelled `Unable to Verify` / `Unable to Confirm`, and lifecycle
+  findings carry their Microsoft source URL. CPU vendor inferred from SKU naming is marked partially verified
+  and requires validation.
+- **Recommendations you can act on.** The tool preserves CPU architecture and prioritizes the same CPU vendor,
+  never downsizes, enforces
   mandatory compatibility checks (Hyper-V generation, SCSI/NVMe controller, temp disk, accelerated networking,
   Premium/Ultra, Trusted Launch and more), and adds up quota demand across every VM moving into the same family.
+  Normal retirement/upgrade selection can fall back to another x64 vendor only when no valid same-vendor candidate
+  exists; the change is flagged and lowers confidence. The explicit v6/v7 modernization selection requires the same
+  vendor, with the normal recommendation retained as fallback.
 - **Strictly read-only.** It uses Azure CLI read operations to collect inventory, SKU availability/restrictions,
   quota usage and optional telemetry. It never resizes, redeploys, starts, stops or otherwise changes a VM, and it
   never requests quota increases or modifies Azure configuration.
@@ -94,6 +99,14 @@ row itself) to open a tinted block under it with what to do, what changes, what 
 explanations, the mandatory requirement checks and every evaluated size. Badge labels wrap on narrow screens, and VM
 details appear in print.
 HTML report footers and Markdown reports include a **Source repository** link to this standalone repository.
+
+## FAQ
+
+Read the [VM retirement and modernization FAQ](docs/faq.md) for lifecycle definitions, capacity restrictions,
+commercial considerations, migration prerequisites and tool limitations. For a standalone browser page, open
+[the HTML FAQ](docs/faq.html) locally. Questions are collapsed by default in both versions.
+Generated tenant and subscription reports link to the repository's FAQ in the navigation row and footer
+(after **Limitations** in the subscription navigation); those links require internet access.
 
 ## Local use
 
@@ -476,8 +489,9 @@ the current size with both targets.
 3. **Classify lifecycle.** Separate confirmed retirement exposure from optional modernization. By default only VMs
    needing retirement action enter candidate analysis; `--check-modernization` opts every inventoried VM into it.
 4. **Build and gate candidates.** Read regional Compute Resource SKU capabilities and subscription restrictions,
-   retain same-CPU-vendor and same-architecture current generations that do not downsize, and apply mandatory
-   compatibility gates before scoring primary and alternative candidates.
+   retain same-architecture current generations that do not downsize, and apply mandatory compatibility gates
+   before scoring primary and alternative candidates. Prioritize the same CPU vendor; normal retirement/upgrade
+   selection permits a flagged cross-vendor x64 fallback only when no valid same-vendor candidate exists.
 5. **Assess quota and readiness.** Aggregate target-family and regional vCPU demand across the migration set,
    compare it with current quota, calculate suggested headroom, and mark restrictions, unknowns and manual checks.
 6. **Write planning outputs.** Assign confidence, action and migration wave, then generate HTML, Markdown, CSV, JSON,
