@@ -197,8 +197,8 @@ Describe 'End-to-end assessment (mock Azure)' {
             $html | Should -Match '<h3>Recommended steps by migration path</h3>'
             $html | Should -Match 'Upgrade and Modernization Scenarios'
             $html | Should -Not -Match 'Upgrade Path and SCSI to NVMe Guidance'
-            foreach ($path in 'Direct Resize', 'SCSI to NVMe \+ Resize', 'Gen1 \+ NVMe \+ Resize', 'Gen1 Modernization \+ Resize', 'Redeploy / Rebuild Review') { $html | Should -Match "<td class='path-name'>$path</td>" }
-            ([regex]::Matches($html, '<ol class=.steps.>')).Count | Should -Be 5
+            foreach ($path in 'Direct Resize', 'SCSI to NVMe \+ Resize', 'Gen1 \+ NVMe \+ Resize', 'Gen1 Modernization \+ Resize', 'Redeploy / Rebuild Review', 'AKS Node-Pool Replacement') { $html | Should -Match "<td class='path-name'>$path</td>" }
+            ([regex]::Matches($html, '<ol class=.steps.>')).Count | Should -Be 6
             $html | Should -Not -Match 'Migration Path Examples'
             $html | Should -Match 'https://learn\.microsoft\.com/azure/virtual-machines/nvme-linux'
             $html | Should -Match 'https://learn\.microsoft\.com/azure/virtual-machines/migration/scsi-to-nvme-migration'
