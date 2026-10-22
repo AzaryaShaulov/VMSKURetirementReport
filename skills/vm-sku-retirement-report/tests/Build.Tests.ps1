@@ -35,8 +35,7 @@ Describe 'Standalone repository configuration' {
     It 'points editor analysis and instruction discovery at existing repository files' {
         $settings = Get-Content (Join-Path $ProjectRoot '.vscode/settings.json') -Raw | ConvertFrom-Json
         Join-Path $ProjectRoot $settings.'powershell.scriptAnalysis.settingsPath' | Should -Exist
-        $settings.'chat.instructionsFilesLocations'.instructions | Should -BeTrue
-        $instruction = Join-Path $ProjectRoot 'instructions/vm-sku-retirement-report.instructions.md'
+        $instruction = Join-Path $ProjectRoot '.github/instructions/vm-sku-retirement-report.instructions.md'
         $instruction | Should -Exist
         Get-Content $instruction -Raw | Should -Match '(?m)^applyTo: "\*\*"$'
     }
@@ -75,6 +74,53 @@ Describe 'Standalone repository configuration' {
     It 'uses standalone development history without rewriting historical release links' {
         $changelog = Get-Content (Join-Path $ProjectRoot 'CHANGELOG.md') -Raw
         $changelog | Should -Match '(?m)^\[Unreleased\]: https://github\.com/AzaryaShaulov/VMSKURetirementReport/commits/main\r?$'
+    }
+
+    It 'pins every remote workflow action to a full commit SHA' {
+        foreach ($file in Get-ChildItem (Join-Path $ProjectRoot '.github/workflows') -Filter '*.yml') {
+            foreach ($match in [regex]::Matches((Get-Content $file.FullName -Raw), '(?m)^\s*(?:-\s*)?uses:\s*(\S+)')) {
+                $match.Groups[1].Value | Should -Match '^[\w.-]+/[\w./-]+@[a-f0-9]{40}$' -Because $file.Name
+            }
+        }
+    }
+
+    It 'uploads only the current version package and fails if it is missing' {
+        foreach ($name in 'vm-sku-retirement-report-ci.yml', 'vm-sku-retirement-report-release.yml') {
+            $workflow = Get-Content (Join-Path $ProjectRoot ".github/workflows/$name") -Raw
+            $workflow | Should -Not -Match 'dist/\*'
+            $workflow | Should -Match 'id: package'
+            $workflow | Should -Match 'steps\.package\.outputs\.zip'
+            $workflow | Should -Match 'if-no-files-found: error'
+            $workflow | Should -Match 'throw "Missing package artifact: \$file"'
+        }
+    }
+
+    It 'restores browser dependencies from a matching lockfile' {
+        $manifest = Get-Content (Join-Path $ProjectRoot 'tools/package.json') -Raw | ConvertFrom-Json
+        $lock = Get-Content (Join-Path $ProjectRoot 'tools/package-lock.json') -Raw | ConvertFrom-Json -AsHashtable
+        $lock.packages.'node_modules/playwright-core'.version | Should -Be $manifest.devDependencies.'playwright-core'
+        $lock.packages.'node_modules/playwright-core'.integrity | Should -Match '^sha512-'
+        $ci = Get-Content (Join-Path $ProjectRoot '.github/workflows/vm-sku-retirement-report-ci.yml') -Raw
+        $ci | Should -Match 'npm ci --ignore-scripts'
+        $ci | Should -Not -Match 'npm install --no-save'
+    }
+
+    It 'rejects a missing ZIP or checksum before publishing artifact paths in <Name>' -ForEach @(
+        @{ Name = 'vm-sku-retirement-report-ci.yml' }
+        @{ Name = 'vm-sku-retirement-report-release.yml' }
+    ) {
+        $workflow = Get-Content (Join-Path $ProjectRoot ".github/workflows/$Name") -Raw
+        $text = [regex]::Match($workflow, '(?ms)^          foreach \(\$file in \$zip, "\$zip.sha256"\) \{.*?^          \}').Value
+        $text | Should -Not -BeNullOrEmpty
+        $guard = [scriptblock]::Create($text)
+        $zip = Join-Path $TestDrive "$Name.zip"
+        { & $guard } | Should -Throw '*Missing package artifact*'
+        Set-Content -LiteralPath $zip -Value 'test package'
+        { & $guard } | Should -Throw '*sha256*'
+        Set-Content -LiteralPath "$zip.sha256" -Value 'test checksum'
+        { & $guard } | Should -Not -Throw
+        Remove-Item -LiteralPath $zip
+        { & $guard } | Should -Throw '*Missing package artifact*'
     }
 }
 

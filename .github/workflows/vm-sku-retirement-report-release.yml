@@ -6,7 +6,7 @@ name: VMSKURetirementReport Release
 # Release tags carry the project name:
 #   git tag vm-sku-retirement-report-v1.2.3-c && git push origin vm-sku-retirement-report-v1.2.3-c
 # The tag commit must be reachable from main. Repository owners should also import
-# .github/rulesets/release-tag-protection.json (Settings > Rules > Rulesets) to block tag deletion, moves and unauthorized creation.
+# .github/rulesets/release-tag-protection.json (Settings > Rules > Rulesets) to block tag deletion and moves.
 
 on:
   push:
@@ -42,16 +42,25 @@ jobs:
           if ("vm-sku-retirement-report-v$v" -ne $env:TAG) { throw "Tag $env:TAG does not match tool version v$v (expected vm-sku-retirement-report-v$v)" }
 
       - name: Lint, test, package
+        id: package
         shell: pwsh
-        run: ./build.ps1 -Task Bootstrap, Lint, Version, Test, Package -CI
+        run: |
+          ./build.ps1 -Task Bootstrap, Lint, Version, Test, Package -CI
+          Import-Module ./skills/vm-sku-retirement-report/scripts/modules/Common.psm1 -Force -DisableNameChecking
+          $zip = "dist/VMSKURetirementReport-v$(Get-ToolVersion).zip"
+          foreach ($file in $zip, "$zip.sha256") {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing package artifact: $file" }
+          }
+          "zip=$zip" >> $env:GITHUB_OUTPUT
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-artifacts
+          if-no-files-found: error
           path: |
-            dist/*.zip
-            dist/*.zip.sha256
+            ${{ steps.package.outputs.zip }}
+            ${{ steps.package.outputs.zip }}.sha256
 
   release:
     name: Publish release

@@ -667,6 +667,35 @@ Describe 'JSON and CSV output shapes' {
         $script:ShapeCatalog['standard_d4s_v7'] = $shapeV7
     }
 
+    It 'preserves required JSON fields and reconciles VM rows with CSV for <Count> VMs' -ForEach @(
+        @{ Count = 0 }, @{ Count = 1 }, @{ Count = 2 }
+    ) {
+        $set = @(for ($i = 0; $i -lt $Count; $i++) {
+            Invoke-TestAssessment -Vm (New-TestVm -Name "contract$i" -Sku 'Standard_DS3_v2' -Gen 'V1')
+        })
+        $out = Export-TestOutput -Assessments $set
+        $j = Read-TestJson $out
+        foreach ($field in 'schemaVersion', 'tool', 'toolVersion', 'generatedUtc', 'asOfDate', 'parameters',
+            'catalog', 'counts', 'summary', 'quota', 'collectionIssues', 'vms') {
+            $j.PSObject.Properties.Name | Should -Contain $field
+        }
+        $j.schemaVersion | Should -Be '1.0'
+        ($j.vms -is [array]) | Should -BeTrue
+        $j.vms.Count | Should -Be $Count
+        $csv = @(Import-Csv (Join-Path $out 'vm-assessment.csv'))
+        $csv.Count | Should -Be $Count
+        for ($i = 0; $i -lt $Count; $i++) {
+            $j.vms[$i].row.VM | Should -Be $csv[$i].VM
+            $j.vms[$i].row.RecommendedSku | Should -Be $csv[$i].RecommendedSku
+            foreach ($field in 'row', 'vm', 'lifecycle', 'current', 'recommendation', 'strategy',
+                'confidence', 'rightsizing', 'pricing') {
+                $j.vms[$i].PSObject.Properties.Name | Should -Contain $field
+            }
+            $j.vms[$i].rightsizing | Should -BeNullOrEmpty
+            $j.vms[$i].pricing | Should -BeNullOrEmpty
+        }
+    }
+
     It 'writes every summary grouping as an array whether there are no, one or several groups' -ForEach @(
         @{ Case = 'no VMs'; Skus = @() }
         @{ Case = 'one VM'; Skus = @('Standard_DS3_v2') }
@@ -1589,11 +1618,80 @@ Describe 'Report name and table columns' {
         $script:ReportSub = Get-Content (Get-ChildItem $ReportDir -Filter '*.html' | Where-Object Name -ne 'index.html' | Select-Object -First 1).FullName -Raw
     }
 
+    It 'links the FAQ in the navigation and footer, immediately after subscription Limitations' {
+        foreach ($html in $ReportIndex, $ReportSub) {
+            ([regex]::Matches($html, '<a[^>]+href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/docs/faq\.md"[^>]*>FAQ</a>')).Count | Should -Be 2
+            $html | Should -Match '<nav[^>]*>.*<a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/docs/faq\.md" target="_blank" rel="noopener noreferrer">FAQ</a></div></nav>'
+            [regex]::Match($html, '(?s)<header\b.*?</header>').Value | Should -Not -Match '>FAQ</a>'
+        }
+        $ReportSub | Should -Match '<a href=''#limitations''>Limitations</a><a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/docs/faq\.md"'
+    }
+
+    It 'matches the FAQ header background color in both assessment pages' {
+        $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
+        $faq = Get-Content -LiteralPath (Join-Path $docs 'faq.html') -Raw
+        $color = [regex]::Match($faq, 'header \{ background: (#[0-9a-fA-F]{6});').Groups[1].Value
+        $color | Should -Be '#102d4f'
+        foreach ($html in $ReportIndex, $ReportSub) {
+            $html | Should -Match ('\.hero \{ background: ' + [regex]::Escape($color) + ';')
+        }
+    }
+
+    It 'publishes all FAQ questions collapsed with source links and direct guidance language' {
+        $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
+        $html = Get-Content -LiteralPath (Join-Path $docs 'faq.html') -Raw
+        $markdown = Get-Content -LiteralPath (Join-Path $docs 'faq.md') -Raw
+        ([regex]::Matches($html, '<details class="faq-question"')).Count | Should -Be 45
+        ([regex]::Matches($markdown, '(?m)^<details>')).Count | Should -Be 45
+        foreach ($content in $html, $markdown) {
+            $content | Should -Not -Match '<details[^>]*\sopen(?:\s|=|>)'
+            $content | Should -Not -Match 'Microsoft (?:says|states|currently|explicitly|documents|identifies|recommends)'
+            $content | Should -Match 'A quota restriction is not a VM shutdown notice'
+            $content | Should -Match 'https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview'
+            $content | Should -Match 'Recommended action'
+        }
+        foreach ($link in [regex]::Matches($html, 'href="#([^"]+)"')) {
+            $html | Should -Match ('id="' + [regex]::Escape($link.Groups[1].Value) + '"')
+        }
+    }
+
+    It 'documents AKS replacement pools on both report pages without offering standalone conversion' {
+        foreach ($html in $ReportIndex, $ReportSub) {
+            $guidance = [regex]::Match($html, "(?s)<details id='upgrade-guidance'.*?</details>").Value
+            $guidance | Should -Match 'AKS Node-Pool Replacement'
+            $guidance | Should -Match 'not an AKS inventory or pool-readiness assessment'
+            $guidance | Should -Match 'do not resize backing VMs/VMSS directly'
+            $row = [regex]::Match($guidance, "(?s)<tr><td class='path-name'>AKS Node-Pool Replacement</td>.*?</tr>").Value
+            foreach ($required in 'quota', 'subnet/pod IP', 'Linux System pool', 'PodDisruptionBudgets', 'emptyDir', 'system-pod health', 'infrastructure-as-code', 'no automatic SKU migration or zero-downtime guarantee') {
+                $row | Should -Match ([regex]::Escape($required))
+            }
+            $row | Should -Match 'https://learn.microsoft.com/en-us/azure/aks/resize-node-pool#create-a-new-node-pool-with-the-desired-sku'
+            $row | Should -Not -Match 'preview|manual-scale|Standard_'
+        }
+    }
+
+    It 'keeps AKS FAQ replacement guidance consistent across formats and limited to Q36' {
+        $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
+        $answers = foreach ($file in 'faq.html', 'faq.md') {
+            $content = Get-Content -LiteralPath (Join-Path $docs $file) -Raw
+            $answer = [regex]::Match($content, '(?s)<summary>Q36\. How should AKS be handled\?</summary>(.*?)</details>').Groups[1].Value
+            foreach ($required in 'What happens to nodes on retiring SKUs', 'Does a Kubernetes or node-image upgrade fix SKU retirement', 'What is the recommended replacement path', 'What differs for system and user pools', 'PodDisruptionBudgets', 'emptyDir', 'does not automatically move existing system pods', 'does not imply that this tool inventories AKS pools') {
+                $answer | Should -Match ([regex]::Escape($required))
+            }
+            $answer | Should -Not -Match 'preview|manual-scale'
+            $plain = $answer -replace '\[([^\]]+)\]\[[^\]]+\]', '$1' -replace '(?m)^\d+\. ', '' -replace '<[^>]+>', ' ' -replace '\*\*|`', ''
+            (($plain -replace '\s+', ' ').Trim())
+        }
+        $answers[0] | Should -Be $answers[1]
+    }
+
     It 'calls the report "Azure VM SKU Retirement Report" in the header, title and footer of every page' {
         foreach ($html in $ReportIndex, $ReportSub) {
-            $html | Should -Match '<strong>Azure VM SKU Retirement Report</strong><small>Assessment report v\d+\.\d+\.\d+[A-Za-z0-9.-]*</small>'
+            $versionLink = '<a class="version-link" href="https://github.com/AzaryaShaulov/VMSKURetirementReport" target="_blank" rel="noopener noreferrer">v\d+\.\d+\.\d+[A-Za-z0-9.-]*</a>'
+            $html | Should -Match ('<strong>Azure VM SKU Retirement Report</strong><small>Assessment report ' + $versionLink + '</small>')
             $html | Should -Match '<title>Azure VM SKU Retirement Report - '
-            $html | Should -Match '<footer>.*Azure VM SKU Retirement Report v\d+\.\d+\.\d+[A-Za-z0-9.-]*'
+            $html | Should -Match ('<footer>.*Azure VM SKU Retirement Report ' + $versionLink)
+            ([regex]::Matches($html, $versionLink)).Count | Should -Be 2
             $html | Should -Not -Match 'VMSKURetirementReport v\d|<strong>VMSKURetirementReport</strong>|<title>VMSKURetirementReport'
         }
         $ReportIndex | Should -Match '<span class="report-context">Azure VM SKU Retirement Report</span>'
@@ -1613,7 +1711,7 @@ Describe 'Report name and table columns' {
     }
 
     It 'does not call every Advisor upgrade-and-retirement recommendation a retirement signal' {
-        $summary = $ReportIndex
+        $summary = $ReportSub
         $summary | Should -Match 'Advisor upgrade and retirement recommendations \(only those that name a VM size corroborate the lifecycle'
         $summary | Should -Match 'Service Health retirement events'
         $summary | Should -Not -Match 'Advisor and \d+ Service Health retirement signals'
@@ -2467,10 +2565,15 @@ Describe 'Output writers (offline)' {
         $mdText | Should -Match '\| Attribute \| Current \| Retirement target \| Note \|'
         $mdText | Should -Not -Match 'Modernization target|MODERNIZATION ASSESSMENT|MATERIAL DIFFERENCES'
         $idx = Get-Content (Join-Path $out 'index.html') -Raw
-        foreach ($sec in 'Cross-Vendor Migration Warnings', 'SKU Family Quick Reference', 'CPU Vendor from SKU Name', 'Known Limitations', 'Bottom line') { $idx | Should -Match ([regex]::Escape($sec)) }
-        $idx | Should -Match 'Dsv\d|Dasv\d'
-        $idx | Should -Match '<td><strong>VM inventory \(Azure Resource Graph\)</strong></td>'
-        $idx | Should -Match '<td><strong>Physical regional capacity</strong></td><td><span class=''badge b-yellow''>Not verifiable</span>'
+        $sub = Get-Content (Get-ChildItem $out -Filter '*.html' | Where-Object Name -ne 'index.html' | Select-Object -First 1).FullName -Raw
+        $idx | Should -Match 'Bottom line'
+        foreach ($sec in 'Cross-Vendor Migration Warnings', 'SKU Family Quick Reference', 'CPU Vendor from SKU Name', 'Known Limitations') {
+            $idx | Should -Not -Match ([regex]::Escape($sec))
+            $sub | Should -Match ([regex]::Escape($sec))
+        }
+        $sub | Should -Match 'Dsv\d|Dasv\d'
+        $sub | Should -Match '<td><strong>VM inventory \(Azure Resource Graph\)</strong></td>'
+        $sub | Should -Match '<td><strong>Physical regional capacity</strong></td><td><span class=''badge b-yellow''>Not verifiable</span>'
     }
 }
 
@@ -2920,9 +3023,12 @@ Describe 'HTML report safety' {
         $html | Should -Match '@media \(min-width: 900px\) and \(max-width: 1450px\) \{ \.kpis-index \{ grid-template-columns: repeat\(5,'
         # Gen1 VMs card: the test VM is Hyper-V generation 1 (1 of 1 VM).
         $html | Should -Match "<div class='kpi kpi-yellow'><div class='kpi-label'>Gen1 VMs</div><div class='kpi-value'>1</div><div class='kpi-hint'>of 1 VM</div></div>"
-        foreach ($id in 'upgrade-guidance', 'cross-vendor', 'sku-families', 'cpu-vendor', 'limitations') {
+        foreach ($id in 'upgrade-guidance') {
             $html | Should -Match "<details id='$id' class='card collapsible-section'>"
             $html | Should -Not -Match "<details id='$id'[^>]+open"
+        }
+        foreach ($id in 'cross-vendor', 'sku-families', 'cpu-vendor', 'limitations') {
+            $html | Should -Not -Match "id='$id'|href='#$id'"
         }
     }
 }

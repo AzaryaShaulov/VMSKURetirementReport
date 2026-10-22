@@ -49,14 +49,23 @@ cd VMSKURetirementReport
 The HTML report has no scripts, so the collapsible VM details are plain CSS (a hidden checkbox and `:has()`), and the
 Pester tests can only check the markup. After changing `templates/report.css` or the table/detail markup, run the
 optional browser smoke test, which opens the sample in real engines (it needs Node.js and is not part of `build.ps1`; the
-CI job installs the same library, `playwright-core@1.64.0`, and uses the Edge that is on the runner):
+CI job restores the locked development dependency and uses the Edge that is on the runner):
 
 ```powershell
 cd tools
-npm i --no-save --ignore-scripts playwright-core@1.64.0
+npm ci --ignore-scripts --no-audit --no-fund
 npx playwright-core install firefox webkit   # msedge/chrome use the installed browser
 node browser-smoke.js ../examples/sample-report msedge firefox webkit
 ```
+
+The smoke test covers index/subscription section visibility, navigation, compact headings, keyboard/click controls,
+print rendering and overflow at desktop and phone widths. Update `tools/package.json` with npm and commit the matching
+`tools/package-lock.json` when upgrading Playwright; do not update the workflow independently.
+
+CI validates workflow syntax and action inputs with actionlint v1.7.12, downloaded from the official release and
+checked against its pinned SHA-256 before execution. Run `.\.github\scripts\Test-Workflows.ps1` locally on Windows
+to perform the same check (requires internet access). Configuration tests also reject remote actions without a full
+commit SHA. CI and release uploads select only the current tool-version ZIP/checksum and fail if that pair is absent.
 
 ## Repository layout
 
@@ -108,6 +117,23 @@ Keep released ZIPs and their checksums immutable. Link corrections in source, re
 sample ship in the next release; use `-DistPath` to validate an unpublished package without replacing a released ZIP.
 Historical release links and cached Microsoft evidence may still point to their original sources and must not be
 rewritten as part of an active-link cleanup.
+
+### Codacy SARIF uploads
+
+The Codacy workflow keeps the v4 uploader SHA-pinned. `.github/scripts/Split-CodacySarif.ps1` splits the CLI output into
+one file per run and assigns unique `automationDetails.id` categories using the tool name and its occurrence number.
+Keep repeated runs for a tool in a stable order so their code-scanning categories remain stable across scans.
+Findings, rules and other run metadata are retained; the automation ID is deliberately replaced.
+
+Only the upload step is temporarily non-blocking. An upload failure emits a warning and a job summary; a green workflow
+alone does not prove code-scanning results were published. Check the upload step and the repository's code-scanning
+analysis timestamps. CLI failures and invalid SARIF still fail the workflow. Remove `continue-on-error` and the warning
+step once successful uploads have been verified on `main` and pull requests.
+
+If a v4-specific regression remains, the rollback candidate is the previously used v3.39.0 commit
+`ce5e7eeac396d720fe2d802714996c8ce561e311`. Do not downgrade alongside the v4 fix or assume a downgrade bypasses GitHub's
+server-side validation. Verify acceptance before adopting that fallback; if adopted, temporarily ignore only the
+`github/codeql-action/upload-sarif` v4 major bump in Dependabot, and remove that exception when restoring v4.
 
 ## Releasing (maintainers)
 

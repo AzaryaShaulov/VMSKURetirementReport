@@ -4,7 +4,7 @@
 // whole row toggles through a label overlay. Pester can only check that markup and CSS strings exist, so this
 // opens the report in real engines and checks the behaviour.
 //
-//   cd tools; npm i --no-save playwright-core
+//   cd tools; npm ci --ignore-scripts
 //   npx playwright-core install firefox webkit        # optional; msedge/chrome use the installed browser
 //   node browser-smoke.js [report-folder] [engine ...]  # engines: msedge, chrome, firefox, webkit (default: msedge)
 //
@@ -12,14 +12,17 @@
 'use strict';
 const path = require('path');
 const fs = require('fs');
+const { pathToFileURL } = require('url');
 let pw;
-try { pw = require('playwright-core'); } catch { console.error('playwright-core is not installed (npm i --no-save playwright-core).'); process.exit(2); }
+try { pw = require('playwright-core'); } catch { console.error('playwright-core is not installed (run npm ci --ignore-scripts in tools).'); process.exit(2); }
 
 const dir = path.resolve(process.argv[2] || path.join(__dirname, '..', 'examples', 'sample-report'));
 const wanted = process.argv.slice(3).length ? process.argv.slice(3) : ['msedge'];
 const pageFile = fs.readdirSync(dir).find(f => /^contoso-prod-.*\.html$/.test(f)) || fs.readdirSync(dir).find(f => f.endsWith('.html') && f !== 'index.html');
 if (!pageFile) { console.error(`No subscription report page (*.html other than index.html) found in ${dir}.`); process.exit(2); }
-const url = 'file:///' + path.join(dir, pageFile).replace(/\\/g, '/');
+const url = pathToFileURL(path.join(dir, pageFile)).href;
+const indexUrl = pathToFileURL(path.join(dir, 'index.html')).href;
+const referenceIds = ['cross-vendor', 'sku-families', 'cpu-vendor', 'limitations'];
 const launchers = {
   msedge: () => pw.chromium.launch({ channel: 'msedge', headless: true }),
   chrome: () => pw.chromium.launch({ channel: 'chrome', headless: true }),
@@ -32,7 +35,28 @@ async function checks(browser) {
   const ok = (name, pass) => out.push([name, !!pass]);
   const ctx = await browser.newContext({ viewport: { width: 1500, height: 1000 } });
   const p = await ctx.newPage();
+  const checkNavigation = async page => page.locator('.toc a[href^="#"]').evaluateAll(links =>
+    links.length > 0 && links.every(a => document.getElementById(decodeURIComponent(a.hash.slice(1)))));
+  const checkHeading = async (page, expected) => page.locator('.collapsible-section > summary').evaluateAll((els, padding) =>
+    els.length > 0 && els.every(e => {
+      const style = getComputedStyle(e);
+      return parseFloat(style.paddingTop) === padding && parseFloat(style.paddingBottom) === padding;
+    }), expected);
+  await p.goto(indexUrl);
+  ok('index omits reference sections and their navigation links', await p.evaluate(ids =>
+    ids.every(id => !document.getElementById(id) && !document.querySelector(`a[href="#${id}"]`)), referenceIds));
+  ok('index retains upgrade guidance', await p.locator('#upgrade-guidance').count() === 1);
+  ok('index navigation targets exist', await checkNavigation(p));
+  ok('index headings have compact desktop padding', await checkHeading(p, 4.4));
+  const subLink = p.locator('#subscriptions a').filter({ hasText: /./ }).first();
+  await subLink.click();
+  ok('index subscription link opens a report', new URL(p.url()).pathname.endsWith('.html') &&
+    await p.locator('#overview').count() === 1);
   await p.goto(url);
+  ok('subscription keeps all four reference sections', await p.evaluate(ids =>
+    ids.every(id => document.querySelector(`details#${id}`)), referenceIds));
+  ok('subscription navigation targets exist', await checkNavigation(p));
+  ok('subscription headings have compact desktop padding', await checkHeading(p, 4.4));
   const display = i => p.locator('tr.vm-detail-row').nth(i).evaluate(e => getComputedStyle(e).display);
   ok('detail rows are collapsed by default', await p.locator('tr.vm-detail-row').evaluateAll(els => els.length > 0 && els.every(e => getComputedStyle(e).display === 'none')));
 
@@ -82,9 +106,14 @@ async function checks(browser) {
   for (const [label, width] of [['1100px', 1100], ['phone 390px', 390]]) {
     const c = await browser.newContext({ viewport: { width, height: 800 } });
     const q = await c.newPage(); await q.goto(url);
+    ok(`${label}: subscription headings remain compact`, await checkHeading(q, 4.4));
     await q.locator('tr.vm-summary-row').nth(1).locator('.vm-toggle-label').click();
     const w = await q.locator('tr.vm-detail-row').nth(1).locator('.vm-detail').boundingBox();
     ok(`${label}: details fit the viewport without page overflow`, w.width <= width && !(await q.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
+    await q.goto(indexUrl);
+    ok(`${label}: index fits the viewport without page overflow`, !(await q.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
+    ok(`${label}: index navigation targets exist`, await checkNavigation(q));
+    ok(`${label}: index headings remain compact`, await checkHeading(q, 4.4));
     await c.close();
   }
   return out;
@@ -95,8 +124,10 @@ async function checks(browser) {
   for (const name of wanted) {
     if (!launchers[name]) { console.error(`Unknown engine ${name}`); failed++; continue; }
     let results;
-    try { const b = await launchers[name](); results = await checks(b); await b.close(); }
+    let b;
+    try { b = await launchers[name](); results = await checks(b); }
     catch (e) { console.log(`${name}: ERROR ${String(e).split('\n')[0]}`); failed++; continue; }
+    finally { if (b) await b.close(); }
     for (const [check, pass] of results) { console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}: ${check}`); if (!pass) failed++; }
   }
   process.exit(failed ? 1 : 0);

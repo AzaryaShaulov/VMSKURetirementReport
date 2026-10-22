@@ -8,6 +8,7 @@ $script:DisclaimerIndependence = 'This independently developed tool is not an of
 $script:DisclaimerValidation = 'Findings, retirement timelines, SKU compatibility, and modernization recommendations are informational only. Users must verify all recommendations, regional availability, quotas, pricing, VM generation, storage compatibility, and migration requirements against current official Microsoft documentation before implementing production changes.'
 $script:Disclaimer = "$script:DisclaimerWarranty $script:DisclaimerIndependence`n`n$script:DisclaimerValidation"
 $script:RepositoryUrl = 'https://github.com/AzaryaShaulov/VMSKURetirementReport'
+$script:FaqUrl = "$script:RepositoryUrl/blob/main/docs/faq.md"
 # The name shown in the headers, titles and footers of the reports (the tool and its files keep the name VMSKURetirementReport).
 $script:ReportName = 'Azure VM SKU Retirement Report'
 
@@ -574,6 +575,7 @@ function New-HtmlPage {
     $back = if ($BackLink) { "<a href='$BackLink' class='back'>&larr; Tenant summary</a>" } else { '' }
     $metaHtml = (@($Meta) | Where-Object { $_ } | ForEach-Object { "<span class='chip'>$_</span>" }) -join ''
     $navHtml = New-NavHtml -Nav $Nav
+    $navHtml += "<a href=""$script:FaqUrl"" target=""_blank"" rel=""noopener noreferrer"">FAQ</a>"
     $version = Get-ToolVersion
     $statusHtml = if ($Warnings -gt 0) { "<span class=""footer-status warn""><span aria-hidden=""true""></span>Report generated with $Warnings warning$(if ($Warnings -ne 1) { 's' })</span>" } else { '<span class="footer-status"><span aria-hidden="true"></span>Report generated</span>' }
     # Allow long VM size names to wrap only after the 'Standard_' prefix, never mid-name.
@@ -583,7 +585,7 @@ function New-HtmlPage {
 <title>$(& $e $Title)</title><style>$Css</style></head><body>
 <header class="hero"><div class="wrap">
 <div class="app-bar">
-<div class="brand-lockup"><span class="brand-mark" aria-hidden="true">&#9729;</span><span><strong>$script:ReportName</strong><small>Assessment report v$version</small></span></div>
+<div class="brand-lockup"><span class="brand-mark" aria-hidden="true">&#9729;</span><span><strong>$script:ReportName</strong><small>Assessment report <a class="version-link" href="$script:RepositoryUrl" target="_blank" rel="noopener noreferrer">v$version</a></small></span></div>
 <span class="brand-divider" aria-hidden="true"></span>
 <span class="report-context">$(& $e $Eyebrow)</span>
 <span class="mode-pill">Read-only</span>
@@ -600,7 +602,7 @@ $(if ($navHtml) { "<nav class='toc'><div class='wrap'>$navHtml</div></nav>" })
 $Body
 <section class="callout disclaimer" aria-label="Disclaimer"><h2>Disclaimer</h2><p><strong>$(& $e $script:DisclaimerWarranty)</strong> $(& $e $script:DisclaimerIndependence)</p><p>$(& $e $script:DisclaimerValidation)</p></section>
 </main>
-<footer><div class="wrap">$statusHtml<span>$script:ReportName v$version &middot; read-only assessment &middot; $(& $e $Title) &middot; <a href="$script:RepositoryUrl" target="_blank" rel="noopener noreferrer">Source repository</a></span></div></footer>
+<footer><div class="wrap">$statusHtml<span>$script:ReportName <a class="version-link" href="$script:RepositoryUrl" target="_blank" rel="noopener noreferrer">v$version</a> &middot; read-only assessment &middot; $(& $e $Title) &middot; <a href="$script:FaqUrl" target="_blank" rel="noopener noreferrer">FAQ</a> &middot; <a href="$script:RepositoryUrl" target="_blank" rel="noopener noreferrer">Source repository</a></span></div></footer>
 </body></html>
 "@
 }
@@ -668,6 +670,9 @@ $script:LearnDocs = [ordered]@{
     Generation2      = @{ Title = 'Azure support for Generation 2 VMs'; Url = 'https://learn.microsoft.com/azure/virtual-machines/generation-2'; Topic = 'Gen1 to Gen2' }
     Mana             = @{ Title = 'Microsoft Azure Network Adapter (MANA) overview'; Url = 'https://learn.microsoft.com/azure/virtual-network/accelerated-networking-mana-overview'; Topic = 'Networking and temp disk' }
     NoTempDisk       = @{ Title = 'FAQ: Azure VM sizes with no local temporary disk'; Url = 'https://learn.microsoft.com/azure/virtual-machines/azure-vms-no-temp-disk'; Topic = 'Networking and temp disk' }
+    AksReplacement   = @{ Title = 'Replace AKS node pools to change VM size'; Url = 'https://learn.microsoft.com/en-us/azure/aks/resize-node-pool#create-a-new-node-pool-with-the-desired-sku'; Topic = 'AKS replacement pools' }
+    AksSystemPools   = @{ Title = 'AKS system node-pool requirements'; Url = 'https://learn.microsoft.com/en-us/azure/aks/use-system-pools'; Topic = 'AKS replacement pools' }
+    AksSkuLimits     = @{ Title = 'AKS quotas, supported SKUs and regions'; Url = 'https://learn.microsoft.com/en-us/azure/aks/quotas-skus-regions'; Topic = 'AKS replacement pools' }
 }
 
 function New-LearnLink {
@@ -713,6 +718,13 @@ function New-UpgradeGuidanceHtml {
             Steps = @('Check OS and size support for the Trusted launch upgrade', 'Back up the VM and plan the restart', "Upgrade Gen1 to Gen2 ($(New-LearnLink 'Generation2' 'Gen2 support'))", 'Resize to the target and validate') }
         @{ Name = 'Redeploy / Rebuild Review'; When = 'The guest OS cannot be upgraded in place (for example Windows Server 2016, Debian, Azure Linux).'; Example = @('Gen1 VM (unsupported OS)', 'New Gen2 VM')
             Steps = @('Build a new Gen2 VM on the target size from a supported image', 'Move data disks or restore from backup, then cut over', 'Keep the old VM until the workload is validated, then delete it') }
+        @{ Name = 'AKS Node-Pool Replacement'; When = 'An AKS system or user node pool uses a retiring VM size.'; Example = @('Retiring node pool', 'Supported replacement pool')
+            Steps = @("Confirm retirement scope and an AKS-supported target SKU, OS and zones; check target-family/regional quota, allocation capacity and subnet/pod IP headroom while both pools coexist ($(New-LearnLink 'AksSkuLimits' 'AKS limits'))",
+                "Create replacement capacity through AKS, preserving required labels, taints, autoscaler, disk and pod settings; replace a system pool with another eligible Linux System pool before removing it ($(New-LearnLink 'AksSystemPools' 'system pools'))",
+                'Validate scheduling, node selectors/affinity, topology, networking, DaemonSets and persistent-volume attachment; confirm replicas and PodDisruptionBudgets permit eviction',
+                "Cordon and drain old nodes progressively; emptyDir and other node-local data are not migrated automatically ($(New-LearnLink 'AksReplacement' 'replacement workflow'))",
+                'Verify application and system-pod health before removing the old pool; adding a System pool alone does not move existing system pods',
+                'Update infrastructure-as-code and autoscaling settings so the retiring SKU is not recreated; no automatic SKU migration or zero-downtime guarantee') }
     )
     $rows = foreach ($p in $paths) {
         $steps = ($p.Steps | ForEach-Object { "<li>$_</li>" }) -join ''
@@ -720,7 +732,7 @@ function New-UpgradeGuidanceHtml {
         "<tr><td class='path-name'>$(& $e $p.Name)</td><td>$(& $e $p.When)</td><td class='example'><code>$(& $e $p.Example[0])</code> &rarr; <code>$(& $e $p.Example[1])</code>$note</td><td><ol class='steps'>$steps</ol></td></tr>"
     }
     $groups = @($script:LearnDocs.Values | Group-Object { $_.Topic })
-    $order = 'Retirement', 'Resize', 'SCSI to NVMe', 'Gen1 to Gen2', 'Networking and temp disk'
+    $order = 'Retirement', 'Resize', 'SCSI to NVMe', 'Gen1 to Gen2', 'Networking and temp disk', 'AKS replacement pools'
     $docs = foreach ($t in $order) {
         $g = $groups | Where-Object Name -eq $t
         if (-not $g) { continue }
@@ -728,6 +740,7 @@ function New-UpgradeGuidanceHtml {
         "<div class='doc-row'><dt>$(& $e $t)</dt><dd>$links</dd></div>"
     }
     @"
+<p class='note'>The general VM sequence below is for customer-managed VMs. For AKS, use the <strong>AKS Node-Pool Replacement</strong> scenario instead: do not resize backing VMs/VMSS directly or run standalone Gen1/NVMe conversion utilities on AKS-managed nodes. This is educational guidance, not an AKS inventory or pool-readiness assessment by this tool.</p>
 <ol class='upgrade-steps'>
 <li><strong>Confirm the retirement</strong> and the Microsoft-recommended target series for each retiring size.</li>
 <li><strong>Check prerequisites</strong>: Gen1 VMs need the Trusted launch upgrade before a Gen2-only size; SCSI VMs need NVMe conversion before an NVMe-only size (validate guest OS support first).</li>
@@ -1284,7 +1297,9 @@ function Get-FamilyCpuOptions {
 
 function New-ReferenceSections {
     <# Cross-vendor warnings, SKU family reference, CPU-vendor-from-name guide and known limitations. #>
-    param($ProcessorCatalog, $Run, $Summary, $CatalogResult)
+    param($ProcessorCatalog, $Run, $Summary, $CatalogResult, [switch]$UpgradeOnly)
+    $upgrade = New-Section -Id 'upgrade-guidance' -Title 'Upgrade and Modernization Scenarios' -Body (New-UpgradeGuidanceHtml) -Intro 'Recommended steps for each migration path, with examples and Microsoft Learn links, including SCSI to NVMe conversion and Gen1 to Gen2 (Trusted launch).' -Collapsed
+    if ($UpgradeOnly) { return $upgrade }
     $e = { param($x) ConvertTo-HtmlEncoded $x }
 
     $warn = @"
@@ -1375,7 +1390,7 @@ $($famRows -join "`n")
     $limTable = "<div class='table-wrap'><table class='ref'><thead><tr><th>Check</th><th>Status</th><th>Notes</th></tr></thead><tbody>$($limRows -join "`n")</tbody></table></div>"
 
     return @(
-        (New-Section -Id 'upgrade-guidance' -Title 'Upgrade and Modernization Scenarios' -Body (New-UpgradeGuidanceHtml) -Intro 'Recommended steps for each migration path, with examples and Microsoft Learn links, including SCSI to NVMe conversion and Gen1 to Gen2 (Trusted launch).' -Collapsed)
+        $upgrade
         (New-Section -Id 'cross-vendor' -Title 'Cross-Vendor Migration Warnings' -Body $warn -Intro 'Moving between Intel and AMD is usually transparent to the operating system, but some workloads need validation first.' -Collapsed)
         (New-Section -Id 'sku-families' -Title 'SKU Family Quick Reference' -Body $famTable -Intro 'The first letter of a VM size is its family. Replacements stay in the same family unless Microsoft''s migration guide names another one.' -Collapsed)
         (New-Section -Id 'cpu-vendor' -Title 'CPU Vendor from SKU Name' -Body $cpuTable -Intro 'How to read a VM size name such as <code>Standard_D4ads_v6</code>.' -Collapsed)
@@ -1464,9 +1479,9 @@ function Export-HtmlReports {
         (New-Section -Id 'waves' -Title 'Migration Waves' -Body $waveHtml -Intro $waveIntro -Collapsed)
         (New-Section -Id 'subscriptions' -Title 'Subscriptions' -Body $subHtml)
         (New-Section -Id 'evidence' -Title 'Microsoft Retirement Evidence' -Body "<ul class='links'>$srcHtml</ul>" -Intro 'Retirement status comes only from these Microsoft sources. Older sizes without an announced retirement are reported as optional modernization, never as retired.')
-        $reference
+        (New-ReferenceSections -UpgradeOnly)
     ) -join "`n"
-    $nav = @(@{ Id = 'summary'; Label = 'Summary' }, @{ Id = 'waves'; Label = 'Waves' }, @{ Id = 'subscriptions'; Label = 'Subscriptions' }, @{ Id = 'evidence'; Label = 'Evidence' }) + $refNav
+    $nav = @(@{ Id = 'summary'; Label = 'Summary' }, @{ Id = 'waves'; Label = 'Waves' }, @{ Id = 'subscriptions'; Label = 'Subscriptions' }, @{ Id = 'evidence'; Label = 'Evidence' }) + @($refNav | Where-Object { $_.Id -eq 'upgrade-guidance' })
     (New-HtmlPage -Title "$script:ReportName - $($Run.Tenant.Name)" -Eyebrow $script:ReportName -Heading $Run.Tenant.Name -Subtitle "Tenant $($Run.Tenant.Id)" -Meta $meta -Body $body -Css $css -Nav $nav -Warnings $indexWarnings) | Out-File (Join-Path $OutDir $indexName) -Encoding utf8
 
     # -- Per-subscription pages --

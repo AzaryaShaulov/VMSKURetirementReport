@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Source-backed FAQ explaining Azure VM End of Life, capacity restrictions, retirement, and modernization.">
+  <link rel="icon" href="data:,">
+  <title>VM SKU Retirement Tool - Frequently Asked Questions</title>
+  <style>
+    :root { color-scheme: light; --ink: #172b43; --muted: #506176; --line: #d4dfeb; --link: #005ea6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: #f3f6fa; font: 17px/1.65 "Segoe UI", "Segoe UI Variable Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .skip { position: absolute; top: -80px; left: 1rem; padding: .5rem 1rem; background: white; z-index: 1; }
+    .skip:focus { top: 1rem; }
+    header { background: #102d4f; color: white; padding: 1.1rem max(1.25rem, calc((100% - 1050px) / 2)); }
+    header p { margin: 0; font-size: .9rem; letter-spacing: .04em; }
+    main { max-width: 1110px; margin: 2rem auto; padding: 2rem 3rem; background: white; border: 1px solid var(--line); border-radius: 12px; }
+    h1, h2, h3 { line-height: 1.25; scroll-margin-top: 1.5rem; }
+    h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-top: .3rem; }
+    h2 { margin-top: 3rem; padding-bottom: .65rem; border-bottom: 2px solid var(--line); font-size: 1.65rem; }
+    .faq-question { margin: .75rem 0; border: 1px solid var(--line); border-radius: 6px; }
+    .faq-question > summary { cursor: pointer; padding: calc(.595rem - .3px) 1rem; line-height: 1.155; font-weight: 600; }
+    .faq-question > summary:hover { background: #edf6ff; }
+    .faq-question > summary:focus-visible { outline: 3px solid #9c5000; outline-offset: 2px; }
+    .faq-question[open] > summary { border-bottom: 1px solid var(--line); }
+    .faq-answer { padding: 0 1rem .5rem; }
+    h3 { font-size: 1.15rem; margin-top: 2rem; }
+    a { color: var(--link); text-underline-offset: .16em; overflow-wrap: anywhere; }
+    a:hover { color: #003c6b; }
+    a:focus-visible { outline: 3px solid #9c5000; outline-offset: 3px; }
+    blockquote { margin: 1.5rem 0; padding: 1rem 1.3rem; border-left: 5px solid #0078d4; background: #edf6ff; }
+    blockquote p { margin: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: .94rem; }
+    th, td { padding: .8rem; text-align: left; vertical-align: top; border: 1px solid var(--line); overflow-wrap: anywhere; }
+    th { background: #eaf0f7; }
+    tbody tr:nth-child(even) { background: #f7f9fc; }
+    li { margin: .3rem 0; }
+    code { background: #eef2f6; border-radius: 3px; padding: .1em .3em; }
+    footer { max-width: 1050px; padding: 0 1.25rem 2rem; margin: auto; color: var(--muted); font-size: .9rem; }
+    @media (max-width: 650px) {
+      body { font-size: 16px; }
+      main { margin: 0; border: 0; border-radius: 0; padding: 1.25rem; }
+      th, td { padding: .5rem; }
+      table { font-size: .85rem; }
+      footer { padding-top: 1.5rem; }
+    }
+    @media print {
+      body { background: white; font-size: 10pt; }
+      header, .skip, footer { display: none; }
+      main { border: 0; margin: 0; padding: 0; max-width: none; }
+      h2, h3 { break-after: avoid; }
+      tr, blockquote { break-inside: avoid; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#faq-content">Skip to FAQ</a>
+  <header><p>VM SKU RETIREMENT TOOL / DOCUMENTATION</p></header>
+  <main id="faq-content">
+<h1 id="vm-sku-retirement-tool-frequently-asked-questions">VM SKU Retirement Tool: Frequently Asked Questions</h1>
+<p><strong>Sources checked October 21, 2026</strong></p>
+<p>For Azure administrators, architects, infrastructure teams, and IT decision-makers.</p>
+<blockquote>
+<p><strong>A quota restriction is not a VM shutdown notice.</strong> End of Life means retirement has been announced, not that a VM is already retired. Capacity growth restrictions limit deployments or expansion; these controls do not affect existing running VMs. Actual retirement is a separate event: remaining affected VMs are deallocated and stop working at the retirement date. Check the applicable series, date, and cloud before deciding what action is required. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview">Lifecycle overview</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Retirements and capacity restrictions</a></p>
+</blockquote>
+<h2 id="on-this-page">On this page</h2>
+<ul>
+<li><a href="#1-lifecycle-and-retirement">Lifecycle and retirement</a></li>
+<li><a href="#2-reserved-instances">Reserved Instances</a></li>
+<li><a href="#3-azure-savings-plan-for-compute">Azure savings plan for compute</a></li>
+<li><a href="#4-modernization-compatibility">Modernization compatibility</a></li>
+<li><a href="#5-quota-availability-and-capacity">Quota, availability, and capacity</a></li>
+<li><a href="#6-migration-downtime-and-rollback">Migration, downtime, and rollback</a></li>
+<li><a href="#7-assessment-and-planning">Assessment and planning</a></li>
+<li><a href="#8-understanding-this-tool">Understanding this tool</a></li>
+<li><a href="#sources-and-scope">Sources and scope</a></li>
+</ul>
+<h2 id="1-lifecycle-and-retirement">1. Lifecycle and retirement</h2>
+<details class="faq-question" id="q1.what-do-end-of-life-capacity-restrictions-and-retirement-mean"><summary>Q1. What do End of Life, capacity restrictions, and retirement mean?</summary><div class="faq-answer">
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+<th>Customer impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>End of Life</td>
+<td>Retirement has been announced for the series.</td>
+<td>The series is not retired yet and remains supported until its retirement date, subject to applicable restrictions. Plan and complete migration before that date.</td>
+</tr>
+<tr>
+<td>Capacity growth restriction</td>
+<td>A separate limit on new deployments, additional quota, or expansion for an affected series.</td>
+<td>It does not itself stop existing running VMs. Deployment and recovery operations that need allocation can still be capacity-constrained.</td>
+</tr>
+<tr>
+<td>Retired</td>
+<td>The series has reached retirement.</td>
+<td>It can no longer be used to create, resize into, or run VMs. Remaining VMs are deallocated, stop working, and no longer have an SLA or support.</td>
+</tr>
+</tbody>
+</table>
+<p>Current and Extended are also lifecycle stages. Both are fully supported; an older generation is not automatically End of Life. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview">Lifecycle overview</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/end-of-life-sizes-list">End of Life series</a></p>
+</div></details>
+<details class="faq-question" id="q2.a-quota-increase-is-unavailable.does-that-mean-my-vm-will-shut-down-now"><summary>Q2. A quota increase is unavailable. Does that mean my VM will shut down now?</summary><div class="faq-answer">
+<p><strong>No.</strong> For series covered by the capacity growth restrictions, existing running VMs are not affected by the controls. Existing subscriptions can continue deploying and redeploying within already-approved quota, subject to available capacity. New subscriptions cannot deploy the affected series, and additional quota is not approved.</p>
+<p>These restrictions are not a retirement announcement or an immediate shutdown instruction. Check the separate retirement date. Requests submitted before enforcement continue through the normal review process; approval is not promised. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Capacity restrictions and FAQ</a></p>
+</div></details>
+<details class="faq-question" id="q3.which-series-are-retiring-and-when"><summary>Q3. Which series are retiring, and when?</summary><div class="faq-answer">
+<p>Use the current retirement list for the exact series and cloud. Selected examples, not a complete list:</p>
+<table>
+<thead>
+<tr>
+<th>Series</th>
+<th>Published retirement date</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D, Ds, Dv2, Dsv2, Ls</td>
+<td>May 1, 2028</td>
+</tr>
+<tr>
+<td>Av2/Amv2, B-series v1, F, Fs, Fsv2, G, Gs, Lsv2</td>
+<td>November 15, 2028</td>
+</tr>
+<tr>
+<td>Dv3, Dsv3, Ev3, Esv3</td>
+<td>November 15, 2029</td>
+</tr>
+</tbody>
+</table>
+<p>The Dv3/Dsv3/Ev3/Esv3 announcement covers all 32 sizes in those four series. <strong>That retirement announcement</strong> does not apply to Azure Government, Azure operated by 21Vianet, or sovereign cloud regions. Do not extend this exclusion to other announcements without checking their scope.</p>
+<p>Capacity growth restrictions beginning in July 2026 and RI purchase restrictions effective July 1, 2026 are separate events, not earlier VM retirement dates. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Retirement list</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">Modernization FAQ</a></p>
+</div></details>
+<details class="faq-question" id="q4.what-happens-if-a-vm-is-still-on-a-retired-size-at-the-deadline"><summary>Q4. What happens if a VM is still on a retired size at the deadline?</summary><div class="faq-answer">
+<p>At retirement, remaining VMs in the affected series are deallocated and stop working; the retired size no longer has an SLA or support. In-memory and temporary-disk data is lost, while managed-disk data is preserved. Recovery on a supported size depends on compatibility and capacity; it is not a substitute for completing migration beforehand.</p>
+<p>The end of VM compute usage does not establish that all associated disks, networking resources, or commercial commitments become free or are canceled. Review those separately. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview">Lifecycle overview</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirement/retired-sizes-modernization-guide">Retired sizes modernization guide</a></p>
+</div></details>
+<details class="faq-question" id="q5.can-existing-end-of-life-vms-keep-running-until-retirement"><summary>Q5. Can existing End of Life VMs keep running until retirement?</summary><div class="faq-answer">
+<p>For Dv3, Dsv3, Ev3, and Esv3, existing VMs keep running and remain supported until November 15, 2029. Capacity growth restrictions do not themselves stop them.</p>
+<p>Do not interpret this as guaranteed capacity for a future deployment, redeployment, disaster-recovery failover, or restart that needs a new allocation. Review capacity and recovery plans before an operation that releases capacity. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">Modernization FAQ</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Capacity restrictions</a></p>
+</div></details>
+<details class="faq-question" id="q6.will-microsoft-automatically-move-my-workload-to-a-replacement-size"><summary>Q6. Will Microsoft automatically move my workload to a replacement size?</summary><div class="faq-answer">
+<p>Do not rely on automatic migration. <strong>Recommended action:</strong> Choose replacement sizes and complete modernization before retirement. Remaining affected VMs are deallocated at retirement; workload migration is not guaranteed. For service-managed compute, follow that service's replacement process. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview">Lifecycle overview</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-discover">Workload patterns</a></p>
+</div></details>
+<h2 id="2-reserved-instances">2. Reserved Instances</h2>
+<details class="faq-question" id="q7.do-capacity-restrictions-cancel-existing-reserved-instances"><summary>Q7. Do capacity restrictions cancel existing Reserved Instances?</summary><div class="faq-answer">
+<p>No. Existing Reserved Instances (RIs) remain valid for their purchased term and continue discounting matching usage after quota growth restrictions take effect. An RI is a billing benefit, not a capacity reservation or an exemption from retirement. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">RI questions in the capacity-restrictions guidance</a></p>
+</div></details>
+<details class="faq-question" id="q8.will-an-ri-automatically-follow-a-move-from-v3-to-v5-v6-or-v7"><summary>Q8. Will an RI automatically follow a move from v3 to v5, v6, or v7?</summary><div class="faq-answer">
+<p>Do not assume it will. Matching depends on the reservation's applicable region, benefit scope, and eligible usage. Instance-size flexibility shares the benefit only among sizes in the same flexibility group; it is not a general cross-generation transfer right. Verify the actual group and target before moving. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/reserved-vm-instance-size-flexibility">VM size flexibility</a> | <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/instance-size-flexibility">Current instance-size flexibility reference</a></p>
+</div></details>
+<details class="faq-question" id="q9.can-i-exchange-an-ri-for-a-replacement-family"><summary>Q9. Can I exchange an RI for a replacement family?</summary><div class="faq-answer">
+<p>Possibly, if the reservation and replacement meet the current exchange policy.</p>
+<p>Currently, an announced exchange-policy change takes effect starting <strong>February 1, 2027</strong>: reservations purchased after that date are not exchangeable where the service is supported by savings plans; reservations purchased before that date retain one final exchange. The policy explicitly lists exclusions, including reservations for deprecated products or services approaching end of life.</p>
+<p>Do not treat February 1 as a universal deadline after which every legacy reservation loses exchange rights. Confirm the specific reservation's eligibility and transaction conditions before relying on an exchange. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/exchange-and-refund-azure-reservations">Exchange and refund policy</a></p>
+</div></details>
+<details class="faq-question" id="q10.can-i-trade-an-ri-for-a-savings-plan"><summary>Q10. Can I trade an RI for a savings plan?</summary><div class="faq-answer">
+<p>Eligible reservations can be traded in through the documented trade-in process. This is a commercial transaction, not an automatic conversion. The new savings plan's total commitment must be at least the returned reservation's remaining commitment.</p>
+<p>The resulting hourly commitment is not guaranteed to cover exactly the same VMs or deliver the same savings as the RI. Compare eligible usage and prices before deciding. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/reservation-trade-in">Reservation trade-ins</a></p>
+</div></details>
+<details class="faq-question" id="q11.what-if-the-original-ri-remains-active-after-i-migrate"><summary>Q11. What if the original RI remains active after I migrate?</summary><div class="faq-answer">
+<p>If no matching usage consumes the reservation, utilization can fall and the commitment can be unused. Check whether other eligible usage within its scope can consume the benefit; otherwise evaluate eligible exchange, refund, or trade-in options under the current rules. Migration alone does not cancel the reservation. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/instance-size-flexibility">Size flexibility</a> | <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/exchange-and-refund-azure-reservations">Exchange policy</a> | <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/reservation-trade-in">Trade-ins</a></p>
+</div></details>
+<details class="faq-question" id="q12.can-i-still-buy-or-renew-ris-for-these-older-series"><summary>Q12. Can I still buy or renew RIs for these older series?</summary><div class="faq-answer">
+<p>Not for the affected series and terms after their published cutoff. Starting <strong>July 1, 2026</strong>, purchases and renewals are unavailable for:</p>
+<ul>
+<li><strong>One-year RIs:</strong> Av2, Amv2, Bv1, D, Ds, Dv2, Dsv2, F, Fs, Fsv2, G, Gs, Ls, and Lsv2.</li>
+<li><strong>One-year and three-year RIs:</strong> Dv3, Dsv3, Ev3, and Esv3.</li>
+</ul>
+<p>Other series and terms can have earlier, separate cutoffs. Existing reservations continue through their purchased term. An RI purchase cutoff is not a VM shutdown date. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026">Legacy reservation transition guide</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirement/retired-sizes-modernization-guide">Series-specific schedule</a></p>
+</div></details>
+<details class="faq-question" id="q13.does-an-ri-guarantee-capacity-or-override-growth-restrictions"><summary>Q13. Does an RI guarantee capacity or override growth restrictions?</summary><div class="faq-answer">
+<p>No. RIs provide pricing benefits, not guaranteed allocation. On-demand capacity reservations are a different feature. An RI does not make a blocked quota increase available or guarantee redeployment, failover, or scale-out. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Capacity restrictions</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-overview">Capacity reservation overview</a></p>
+</div></details>
+<h2 id="3-azure-savings-plan-for-compute">3. Azure savings plan for compute</h2>
+<details class="faq-question" id="q14.what-happens-to-an-existing-savings-plan-when-i-change-vm-families"><summary>Q14. What happens to an existing savings plan when I change VM families?</summary><div class="faq-answer">
+<p>The commitment continues. Its benefit can apply to eligible replacement usage within the benefit scope; it is not tied to a particular VM family or region in the way a VM reservation is. The migration does not cancel or restart the term. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/decide-between-savings-plan-reservation">Reservations versus savings plans</a> | <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/manage-savings-plan">Manage savings plans</a></p>
+</div></details>
+<details class="faq-question" id="q15.can-a-savings-plan-cover-v5-v6-or-v7-vms"><summary>Q15. Can a savings plan cover v5, v6, or v7 VMs?</summary><div class="faq-answer">
+<p>It can cover eligible compute usage from those series within the plan's scope. Check the actual target meter, offer eligibility, and savings-plan rate. A newer version number alone is not evidence of the benefit or its amount. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/discount-application">How discounts apply</a></p>
+</div></details>
+<details class="faq-question" id="q16.can-the-benefit-apply-after-moving-to-another-region"><summary>Q16. Can the benefit apply after moving to another region?</summary><div class="faq-answer">
+<p>Yes, for eligible usage within the plan's benefit scope. Azure savings plan for compute is not restricted to a single region. Confirm that the destination resource remains in scope and eligible. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/decide-between-savings-plan-reservation">Reservations versus savings plans</a> | <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/manage-savings-plan">Manage savings plans</a></p>
+</div></details>
+<details class="faq-question" id="q17.what-if-modernization-reduces-my-eligible-compute-spend"><summary>Q17. What if modernization reduces my eligible compute spend?</summary><div class="faq-answer">
+<p>The purchased hourly commitment stays the same. Each hour's benefit is use-it-or-lose-it and does not roll over. If eligible usage at the applicable rates does not consume the commitment, part of that hour's benefit is unused. Do not buy additional commitments solely on the basis of pre-migration usage. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/discount-application">Discount application</a> | <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/decide-between-savings-plan-reservation">Commitment planning</a></p>
+</div></details>
+<details class="faq-question" id="q18.can-i-reduce-or-cancel-an-existing-savings-plan"><summary>Q18. Can I reduce or cancel an existing savings plan?</summary><div class="faq-answer">
+<p>You cannot change the purchased hourly commitment or term length, or cancel or exchange the plan. Benefit scope can be changed under the documented rules, but that does not reduce the commitment or change the term. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/manage-savings-plan">Manage savings plans</a></p>
+</div></details>
+<details class="faq-question" id="q19.can-i-use-ris-and-a-savings-plan-together"><summary>Q19. Can I use RIs and a savings plan together?</summary><div class="faq-answer">
+<p>Yes. Azure applies matching reservation benefits first, then savings-plan benefits to remaining eligible usage. They do not both discount the same unit of usage. Review overall utilization to avoid unused commitments after migration. <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/discount-application">Benefit application</a></p>
+</div></details>
+<h2 id="4-modernization-compatibility">4. Modernization compatibility</h2>
+<details class="faq-question" id="q20.is-v6-or-v7-always-the-required-replacement-and-can-i-just-resize"><summary>Q20. Is v6 or v7 always the required replacement, and can I just resize?</summary><div class="faq-answer">
+<p>No. Retirement requires leaving the retiring size, not universally moving to v6 or v7.</p>
+<p>For Dv3/Dsv3/Ev3/Esv3, <strong>Recommended action:</strong> Use v5 for the smoothest transition, or evaluate v6/v7 for the latest features and performance. Supported Extended sizes can be valid replacements; they are not retired merely because a newer generation exists.</p>
+<p>A v6/v7 move can change boot generation, storage presentation, networking, and image requirements. Treat it as platform modernization, not an assumed drop-in resize. Parallel replacement is the recommended approach for this path; eligible in-place paths have separate prerequisites. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v5-modernization-overview">v5 transition guidance</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">v6/v7 planning</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">Modernization FAQ</a></p>
+</div></details>
+<details class="faq-question" id="q21.can-a-generation-1-vm-become-generation-2-in-place"><summary>Q21. Can a Generation 1 VM become Generation 2 in place?</summary><div class="faq-answer">
+<p>An eligible Gen1 VM can upgrade through the documented <strong>Trusted Launch</strong> path. Gen1-to-Gen2 conversion without enabling Trusted Launch is not supported.</p>
+<p>This is not a normal resize. The VM size, OS, disk layout, encryption, and backup configuration must meet the upgrade prerequisites. Dv2 and Dv3 are listed as unsupported Trusted Launch source series; do not promise direct conversion while remaining on those sizes. The upgrade documentation describes moving unsupported source sizes to supported families where applicable.</p>
+<p><strong>Microsoft support limits:</strong> The documented upgrade excludes Windows Server 2016, Debian, and Azure Linux. Linux upgrades require supported Azure Marketplace OS images; do not assume a custom Linux image qualifies. If Azure Backup is enabled, it must use the Enhanced policy, not Standard. If Azure Site Recovery is enabled, the upgrade prerequisites require disabling it before the upgrade and reconfiguring it afterward. Verify the current <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch-existing-vm-gen-1#prerequisites">upgrade prerequisites</a> and <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch-existing-vm-gen-1#unsupported-gen1-vm-configurations">unsupported configurations</a> before selecting this path.</p>
+<p>There is no simple rollback to Gen1: plan recovery from a verified pre-upgrade backup. A new VM from a compatible Gen2 image is the alternative when the in-place path is unsuitable. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch-existing-vm-gen-1">Gen1 upgrade prerequisites</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch">Trusted Launch size support</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Modernization planning</a></p>
+</div></details>
+<details class="faq-question" id="q22.what-changes-when-moving-from-scsi-to-nvme"><summary>Q22. What changes when moving from SCSI to NVMe?</summary><div class="faq-answer">
+<p>The OS must discover disks through NVMe. Validate boot support, drivers, disk enumeration, mount configuration, recovery tooling, and application disk references. Hard-coded SCSI paths must be replaced with appropriate stable identifiers.</p>
+<p>An in-place conversion is available for eligible configurations, so the change is not universally impossible. However, the commonly referenced automation is a <strong>community utility, not an officially supported Microsoft tool</strong>, and has configuration-specific limits. Do not use it as proof that every VM can convert. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-assess">Readiness assessment</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/migration/scsi-to-nvme-migration">SCSI-to-NVMe conversion</a></p>
+<p><strong>Microsoft-documented limits:</strong> NVMe requires Generation 2; a Gen1 VM needs a supported conversion or replacement first. The utility's documented standard path is for source VMs without a local temporary disk. Temporary-disk source scenarios have separate preview requirements, including <code>VMTempDiskResizePreview</code>; do not assume the standard utility path covers them. The utility does not detect Linux ADE and can complete while leaving an unsupported configuration. Review the <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/migration/scsi-to-nvme-migration#before-you-run-the-conversion">conversion prechecks</a> and Q23 rather than treating decryption alone as proof of support.</p>
+</div></details>
+<details class="faq-question" id="q23.what-os-networking-and-encryption-checks-are-needed-for-v6v7"><summary>Q23. What OS, networking, and encryption checks are needed for v6/v7?</summary><div class="faq-answer">
+<p>Validate all of these against the exact target series and image:</p>
+<ul>
+<li>Generation 2/UEFI and the applicable security configuration.</li>
+<li>NVMe-ready OS and storage drivers.</li>
+<li><strong>Microsoft Azure Network Adapter (MANA)</strong> OS and driver readiness.</li>
+<li>Current, compatible low-level security, backup, and monitoring agents.</li>
+<li><strong>Azure Disk Encryption (ADE):</strong> ADE is unavailable on v6/v7 for both operating systems. Treat ADE as a migration-design gate and review the supported replacement encryption model before selecting a path.</li>
+</ul>
+<p>Do not assume that decrypting a disk alone makes every conversion or encryption-at-host scenario supported. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-assess">Readiness assessment</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Modernization planning, including ADE</a></p>
+<p><strong>Separate Microsoft retirement policy:</strong> ADE retires on <strong>September 15, 2028</strong>. ADE-enabled workloads can continue running, but encrypted disks will fail to unlock after VM reboots following retirement. This deadline is separate from VM-series retirement dates. Review the <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/windows/disk-encryption-overview">Windows ADE support and retirement guidance</a> or <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption-overview">Linux ADE support and retirement guidance</a>, as applicable.</p>
+</div></details>
+<details class="faq-question" id="q24.can-i-keep-the-same-cpu-manufacturer"><summary>Q24. Can I keep the same CPU manufacturer?</summary><div class="faq-answer">
+<p>Often, by selecting an appropriate Intel or AMD target, subject to compatible sizes and availability. Confirm CPU architecture, required instructions, vendor certification, and workload performance.</p>
+<p><strong>Tool behavior:</strong> The tool preserves CPU architecture and prioritizes the same CPU vendor. Its explicit v6/v7 modernization selection requires the same vendor, but normal retirement/upgrade selection can fall back to another x64 vendor when no valid same-vendor candidate exists. The fallback is flagged as <strong>CPU Vendor Change Required</strong> and lowers confidence. If no suitable v6/v7 target exists, the normal recommendation is retained as fallback. This is a tool policy, not a general Microsoft requirement to retain the CPU vendor. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/methodology.md#6-selection">Candidate selection methodology</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v5-modernization-overview">v5 target families</a></p>
+<p><strong>Evidence quality:</strong> When the processor catalog lacks verified evidence, CPU vendor can be inferred from SKU naming and marked partially verified. Review the vendor quality and validation items before relying on a vendor-preservation result. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/methodology.md">Tool evidence and methodology</a></p>
+</div></details>
+<details class="faq-question" id="q25.will-temporary-storage-behave-the-same-way"><summary>Q25. Will temporary storage behave the same way?</summary><div class="faq-answer">
+<p>No. For the D/E v6/v7 modernization path, local temporary storage is associated with <code>d</code> variants and is presented through NVMe. Validate capacity, disk initialization, page file, caches, and SQL Server tempdb placement. Do not retain persistent application data there.</p>
+<p>Also inventory state on the <strong>OS disk</strong>: a new VM built from a fresh image does not automatically receive the source VM's application configuration, certificates, license files, or local data. Explicitly migrate what must persist. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Temporary and OS-disk considerations</a></p>
+</div></details>
+<details class="faq-question" id="q26.are-third-party-appliances-and-applications-automatically-supported"><summary>Q26. Are third-party appliances and applications automatically supported?</summary><div class="faq-answer">
+<p>No. For SAP and certified ISV appliances, confirm the exact supported target family before choosing a migration design. Then validate the image, OS, licensing, NIC layout, storage presentation, driver versions, and support path. Platform compatibility alone does not establish vendor certification. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-assess">Assessment gates</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-discover">Workload classification</a></p>
+</div></details>
+<h2 id="5-quota-availability-and-capacity">5. Quota, availability, and capacity</h2>
+<details class="faq-question" id="q27.does-existing-quota-transfer-automatically-to-the-target-family"><summary>Q27. Does existing quota transfer automatically to the target family?</summary><div class="faq-answer">
+<p>Do not assume so. Azure checks both total regional vCPU quota and VM-family vCPU quota for each subscription and region. Check target-family headroom and the regional total, including the period when old and new VMs coexist. A quota restriction on the old family is not a statement that the target family cannot receive quota. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/quotas">vCPU quotas</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Migration planning</a></p>
+</div></details>
+<details class="faq-question" id="q28.does-approved-quota-or-a-listed-regional-sku-guarantee-deployment"><summary>Q28. Does approved quota or a listed regional SKU guarantee deployment?</summary><div class="faq-answer">
+<p>No. Quota is an approved subscription limit; capacity is the underlying hardware available for allocation in the requested location. A deployment can fail with sufficient quota. A SKU being listed is not a reservation of physical capacity. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/quotas">Quota and capacity</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Capacity restrictions</a></p>
+</div></details>
+<details class="faq-question" id="q29.what-if-the-recommended-size-is-unavailable"><summary>Q29. What if the recommended size is unavailable?</summary><div class="faq-answer">
+<p>Evaluate another compatible size, zone, region, or schedule. Recheck application certification, data location, networking, latency, and resilience requirements before changing the plan. Do not silently replace a required zonal architecture with a regional deployment. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Regional and zonal planning</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">Modernization FAQ</a></p>
+</div></details>
+<details class="faq-question" id="q30.what-about-disaster-recovery-and-high-availability"><summary>Q30. What about disaster recovery and high availability?</summary><div class="faq-answer">
+<p>Validate supported sizes, quota, allocation capacity, recovery mechanisms, and placement in both primary and recovery locations. Preserve the intended zone and cluster layout while old and new nodes coexist.</p>
+<p>An RI or approved quota does not guarantee a recovery allocation. Test the applicable recovery and failover process. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Capacity-restriction RI FAQ</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Cluster and capacity planning</a></p>
+</div></details>
+<details class="faq-question" id="q31.can-on-demand-capacity-reservations-help"><summary>Q31. Can on-demand capacity reservations help?</summary><div class="faq-answer">
+<p>For supported scenarios, an on-demand capacity reservation reserves a specific size and location after successful creation, with coverage under the applicable capacity SLA. Creation itself requires sufficient quota and available capacity; it can fail.</p>
+<p>Used and unused reserved capacity can incur charges. Eligible reservation or savings-plan benefits may apply. This feature is not an RI and is not a workaround for missing quota. Existing affected-series reservations can continue within their limits; shared cross-subscription arrangements need special quota review. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-overview">Capacity reservation overview</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Affected-series capacity reservation FAQ</a></p>
+</div></details>
+<h2 id="6-migration-downtime-and-rollback">6. Migration, downtime, and rollback</h2>
+<details class="faq-question" id="q32.will-migration-require-downtime"><summary>Q32. Will migration require downtime?</summary><div class="faq-answer">
+<p>It depends on the chosen method and application architecture. A resize can require restart or deallocation. Parallel replacement still requires a controlled cutover; replication or clustering may reduce disruption but does not establish a universal zero-downtime guarantee. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v5-modernization-overview">v5 transition methods</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">v6/v7 planning</a></p>
+</div></details>
+<details class="faq-question" id="q33.what-is-the-recommended-v6v7-pattern"><summary>Q33. What is the recommended v6/v7 pattern?</summary><div class="faq-answer">
+<p><strong>Recommended action for customer-managed VMs:</strong></p>
+<p><strong>Deploy compatible replacements -&gt; Move application and data -&gt; Validate -&gt; Cut over -&gt; Retire old resources after acceptance.</strong></p>
+<p>Begin with a pilot and proceed in controlled waves. For pools, managed services, clusters, and appliances, use the workload-specific replacement process rather than applying a per-VM runbook indiscriminately. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Plan the modernization</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-discover">Workload patterns</a></p>
+</div></details>
+<details class="faq-question" id="q34.is-rollback-always-possible"><summary>Q34. Is rollback always possible?</summary><div class="faq-answer">
+<p>No. Define and test it for the actual execution method.</p>
+<ul>
+<li>Parallel replacement can preserve the old environment until the new one is accepted; define how clients and any changed application state would move back.</li>
+<li>An eligible SCSI-to-NVMe conversion has a documented controller/size revert.</li>
+<li>Gen1-to-Trusted-Launch conversion does not simply revert to Gen1; recovery requires the pre-upgrade backup.</li>
+<li>A retired source size cannot remain your fallback after its retirement date.</li>
+</ul>
+<p>Do not confuse possession of a backup with a tested recovery. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">Rollback FAQ</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/migration/scsi-to-nvme-migration">Conversion revert</a></p>
+</div></details>
+<details class="faq-question" id="q35.how-should-azure-virtual-desktop-be-handled"><summary>Q35. How should Azure Virtual Desktop be handled?</summary><div class="faq-answer">
+<p>Separate pooled/non-persistent hosts from personal/persistent desktops. For pooled hosts, assess and refresh the golden image, introduce canary hosts, drain sessions, and expand in rings. Verify profiles and application state are externalized.</p>
+<p>Personal desktops bind users to individual VMs and require per-VM assessment and state migration. Do not apply an image-only replacement assumption to them. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-discover">Desktop workload patterns</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">Modernization FAQ</a></p>
+</div></details>
+<details class="faq-question" id="q36.how-should-aks-be-handled"><summary>Q36. How should AKS be handled?</summary><div class="faq-answer">
+<p><strong>What happens to nodes on retiring SKUs?</strong> Retirement of the underlying VM size also affects AKS worker nodes. End of Life means retirement is announced, not that nodes are already stopped. Capacity growth restrictions alone do not stop running nodes, but scale-out, replacement, upgrade surge, and recovery allocations can be constrained. At retirement, Microsoft's VM lifecycle policy says remaining VMs on retired sizes are deallocated and can no longer run on those sizes. Do not assume AKS will automatically move the pool to another SKU. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview">Lifecycle policy</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Capacity restrictions</a></p>
+<p><strong>Does a Kubernetes or node-image upgrade fix SKU retirement?</strong> Not by itself. Updating Kubernetes or the node OS image does not by itself change the pool's VM size. Plan replacement capacity on a supported, non-retiring SKU.</p>
+<p><strong>What is the recommended replacement path?</strong> Use the AKS node-pool replacement workflow:</p>
+<ol>
+<li>Confirm the target SKU is supported by AKS for the required OS, region and zones. Check target-family and regional vCPU quota, allocation capacity, and subnet/pod IP headroom while old and new pools coexist.</li>
+<li>Create a replacement pool through AKS. Preserve required labels, taints, autoscaler settings, disk configuration and pod density; do not assume these settings are inherited.</li>
+<li>Validate representative workloads, node selectors/affinity, topology constraints, networking, DaemonSets and persistent-volume attachment on the new nodes.</li>
+<li>Confirm replicas and PodDisruptionBudgets allow eviction, then cordon and drain old nodes progressively. Node-local and <code>emptyDir</code> data are not automatically migrated; review deletion flags and application state before draining.</li>
+<li>Verify application and system-pod health before removing the old pool. Update infrastructure-as-code and autoscaling settings so the retiring SKU is not recreated.</li>
+</ol>
+<p><a href="https://learn.microsoft.com/en-us/azure/aks/resize-node-pool#create-a-new-node-pool-with-the-desired-sku">Microsoft replacement-pool steps</a> | <a href="https://learn.microsoft.com/en-us/azure/aks/quotas-skus-regions">AKS SKU and region limits</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-discover">Compute-pool modernization guidance</a></p>
+<p><strong>What differs for system and user pools?</strong> Keep at least one eligible System pool throughout the change. Before removing an old System pool, create another Linux System pool meeting the current AKS requirements (at least two nodes; three recommended for production fault tolerance). Adding a System pool or changing pool mode does not automatically move existing system pods. For user pools, preserve workload-specific scheduling and OS/SKU requirements, including Windows or GPU dependencies where applicable. <a href="https://learn.microsoft.com/en-us/azure/aks/use-system-pools">System-pool requirements and replacement</a></p>
+<p><strong>Is this zero-downtime or an automatic data migration?</strong> No. Disruption depends on replicas, disruption budgets, scheduling, capacity and storage behavior. Persistent volumes need access-mode, zone and detach/attach validation; node-local data needs an explicit application-level strategy.</p>
+<p><strong>Can I resize the backing VMs or run standalone conversion utilities?</strong> Do not modify the backing VMs/VMSS directly or apply standalone Gen1/NVMe conversion utilities to AKS-managed nodes. Use AKS-supported pool operations. This answer covers the recommended replacement-pool path only; it does not imply that this tool inventories AKS pools or validates their readiness.</p>
+</div></details>
+<details class="faq-question" id="q37.what-should-be-validated-after-cutover"><summary>Q37. What should be validated after cutover?</summary><div class="faq-answer">
+<p>Verify OS boot, application and data integrity, disk paths and performance, networking, security agents, monitoring, backup/restore, availability, and workload-owner acceptance. Confirm reservation/savings-plan utilization and licensing configuration separately. A successful boot alone is not successful modernization. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-assess">Readiness checklist</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Planning guidance</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">Modernization FAQ</a></p>
+</div></details>
+<h2 id="7-assessment-and-planning">7. Assessment and planning</h2>
+<details class="faq-question" id="q38.what-should-a-retirement-assessment-contain"><summary>Q38. What should a retirement assessment contain?</summary><div class="faq-answer">
+<p>A useful planning assessment identifies affected resources, exact source sizes, subscriptions, regions, lifecycle evidence and dates, candidate replacements, platform prerequisites, quota and restriction checks, uncertainty, and next steps.</p>
+<p>It must distinguish observed facts from guest/workload checks that remain open. A control-plane assessment alone cannot certify application compatibility, vendor support, or physical capacity. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-assess">Assessment checklist</a> | <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/data-sources.md">Tool data sources and blind spots</a></p>
+</div></details>
+<details class="faq-question" id="q39.does-a-recommended-or-compatible-size-guarantee-migration-success"><summary>Q39. Does a recommended or compatible size guarantee migration success?</summary><div class="faq-answer">
+<p>No. It is a candidate based on the evidence checked. Guest drivers, OS and image readiness, application dependencies, licensing, capacity, and recovery still need validation. This tool's confidence and readiness indicators are not a deployment guarantee. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-assess">Readiness guidance</a> | <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/README.md">Tool documentation</a></p>
+<p><strong>Tool evidence quality:</strong> Some CPU vendor information can be inferred from SKU naming rather than verified processor tables. Check vendor quality, lifecycle provenance, and open validation items; a compatibility label does not turn inferred evidence into a verified fact. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/methodology.md">Tool methodology</a></p>
+</div></details>
+<details class="faq-question" id="q40.when-should-planning-start"><summary>Q40. When should planning start?</summary><div class="faq-answer">
+<p>Start after an applicable retirement or growth-restriction announcement, leaving time for assessment, target quota, commercial review, pilots, phased cutover, and tested rollback before retirement.</p>
+<p>Prioritize using the actual retirement date and workload risk. A growth restriction is a reason to plan expansion and recovery carefully, not evidence of an immediate forced shutdown. <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview">Lifecycle actions</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">Modernization planning</a></p>
+</div></details>
+<h2 id="8-understanding-this-tool">8. Understanding this tool</h2>
+<details class="faq-question" id="q41.does-the-tool-make-changes-to-azure"><summary>Q41. Does the tool make changes to Azure?</summary><div class="faq-answer">
+<p>No. The documented tool is strictly read-only. It collects inventory and evidence and produces recommendations; it does not resize, stop, start, redeploy, request quota, or modify configuration. This FAQ describes customer planning options, not actions the tool performs. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/README.md">Tool documentation</a></p>
+</div></details>
+<details class="faq-question" id="q42.does-the-tool-assess-ri-coverage-or-show-my-actual-contracted-bill"><summary>Q42. Does the tool assess RI coverage or show my actual contracted bill?</summary><div class="faq-answer">
+<p>No. The repository documents that RI and savings-plan coverage are not assessed. Retail PAYGO comparisons are informational and exclude agreement discounts, reservations, savings plans, and Azure Hybrid Benefit.</p>
+<p>Commercial answers in this FAQ explain Microsoft policy; they are not evidence that the tool has inspected your commitments or calculated your net savings. Its optional rightsizing signal does not change the recommended size. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/README.md">Tool documentation and limitations</a></p>
+</div></details>
+<details class="faq-question" id="q43.what-do-end-of-life-retired-optional-modernization-and-unknown-results-mean-in-the-report"><summary>Q43. What do End of Life, Retired, optional modernization, and unknown results mean in the report?</summary><div class="faq-answer">
+<ul>
+<li><strong>End of Life:</strong> retirement has been announced; plan migration before the recorded deadline.</li>
+<li><strong>Retired:</strong> the evidence identifies an already-retired series or a retirement date reached by the assessment date.</li>
+<li><strong>Optional modernization:</strong> a newer-generation opportunity without an established retirement requirement.</li>
+<li><strong>Unable to Confirm / Unable to Verify:</strong> lifecycle evidence or a particular check remains unresolved; manual review is required.</li>
+</ul>
+<p>Do not read End of Life as already shut down, optional modernization as mandatory retirement, or an unknown result as safe. Review the evidence URL and assessment date. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/methodology.md">Tool methodology</a></p>
+</div></details>
+<details class="faq-question" id="q44.does-the-tool-cover-every-azure-compute-workload-and-readiness-check"><summary>Q44. Does the tool cover every Azure compute workload and readiness check?</summary><div class="faq-answer">
+<p>No. The documented inventory does not include Uniform VM Scale Set instances. Guest-dependent facts, including actual temporary-disk use and nested virtualization, need separate review; physical capacity cannot be verified from the control plane.</p>
+<p>Check AKS, AVD, managed-service, and other pool/cluster inventories through their supported assessment processes rather than assuming a standalone-VM report is complete. The tool's documented runtime is PowerShell 7.2+ on Windows with Azure CLI 2.60+. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/README.md">Tool limitations</a> | <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/data-sources.md">Data sources</a> | <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-discover">Workload patterns</a></p>
+</div></details>
+<details class="faq-question" id="q45.can-i-rely-on-a-cached-assessment-indefinitely"><summary>Q45. Can I rely on a cached assessment indefinitely?</summary><div class="faq-answer">
+<p>No. The tool records source provenance and distinguishes cached evidence from live retrieval. Its methodology documents warnings for stale or incomplete evidence. Recheck current Microsoft guidance and the target environment before production decisions; unknown or stale results are not lifecycle guarantees. <a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/methodology.md">Evidence handling</a></p>
+</div></details>
+<h2 id="sources-and-scope">Sources and scope</h2>
+<p>This FAQ accompanies the independently developed VM SKU Retirement tool. It is not an official Microsoft support statement or a tenant-specific assessment. Sources were checked on October 21, 2026. Dates, regional/cloud scope, eligibility, and commercial policies can change.</p>
+<p>Answers link to the relevant documentation. Use the dedicated lifecycle and commercial references for policy details and the repository documentation for tool behavior. Generic migration examples are not universal support guarantees.</p>
+<p><strong>How to read the answers:</strong> Microsoft policy and support limits describe published service rules, subject to their stated eligibility and scope. Tool behavior describes this repository's implementation, not Microsoft policy. Recommendations about pilots, validation, cutover, and recovery are planning guidance, not guarantees of compatibility, capacity, or zero downtime.</p>
+<h3 id="change-sensitive-source-checks">Change-sensitive source checks</h3>
+<p>These are the published page update dates observed during the October 21, 2026 review, not policy effective dates. The linked pages can change after review; recheck them before acting.</p>
+<table>
+<thead><tr><th>Topic</th><th>Microsoft source</th><th>Page last updated</th><th>Last reviewed</th></tr></thead>
+<tbody>
+<tr><td>Retirement and capacity restrictions</td><td><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Lifecycle schedule</a></td><td>September 25, 2026</td><td>October 21, 2026</td></tr>
+<tr><td>RI purchase and renewal cutoffs</td><td><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026">Legacy RI transition</a></td><td>May 4, 2026</td><td>October 21, 2026</td></tr>
+<tr><td>RI exchange eligibility</td><td><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/exchange-and-refund-azure-reservations#reservation-exchange-policy-changes">Exchange policy changes</a></td><td>July 29, 2026</td><td>October 21, 2026</td></tr>
+<tr><td>Gen1 upgrade eligibility</td><td><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch-existing-vm-gen-1#prerequisites">Upgrade prerequisites</a></td><td>June 19, 2026</td><td>October 21, 2026</td></tr>
+<tr><td>Community NVMe utility limits</td><td><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/migration/scsi-to-nvme-migration#before-you-run-the-conversion">Conversion prechecks</a></td><td>September 26, 2026</td><td>October 21, 2026</td></tr>
+</tbody>
+</table>
+<p>ADE support and its separate retirement deadline were also checked on October 21, 2026 against the dedicated <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/windows/disk-encryption-overview">Windows</a> and <a href="https://learn.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption-overview">Linux</a> documentation.</p>
+<p>This FAQ does not perform assessments or change Azure resources.</p>
+<h3 id="microsoft-lifecycle-and-modernization-references">Microsoft lifecycle and modernization references</h3>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/lifecycle-overview">VM lifecycle overview</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions">Retirements and capacity growth restrictions</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/end-of-life-sizes-list">End of Life series</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirement/retired-sizes-modernization-guide">Retired sizes modernization guide</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-faq">v6/v7 modernization FAQ</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-plan">v6/v7 planning</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-assess">v6/v7 readiness assessment</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v5-modernization-overview">v5 modernization</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/sizes-v6-v7-modernization-discover">Workload-specific modernization patterns</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch-existing-vm-gen-1">Gen1-to-Trusted-Launch upgrade</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/trusted-launch">Trusted Launch supported sizes and configurations</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/migration/scsi-to-nvme-migration">SCSI-to-NVMe conversion and tool limitations</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/windows/disk-encryption-overview">Windows Azure Disk Encryption support and retirement</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption-overview">Linux Azure Disk Encryption support and retirement</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/aks/resize-node-pool#create-a-new-node-pool-with-the-desired-sku">AKS replacement-pool workflow</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/aks/use-system-pools">AKS system node-pool requirements</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/aks/quotas-skus-regions">AKS quotas, supported SKUs and regions</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/quotas">vCPU quotas</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-overview">On-demand capacity reservations</a></li>
+</ul>
+<h3 id="microsoft-commercial-references">Microsoft commercial references</h3>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026">Legacy VM reservation transition</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/exchange-and-refund-azure-reservations">Reservation exchanges and refunds</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/reservation-trade-in">Reservation trade-ins</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/virtual-machines/reserved-vm-instance-size-flexibility">Reserved VM instance-size flexibility</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/instance-size-flexibility">Current instance-size flexibility reference</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/decide-between-savings-plan-reservation">Reservations versus savings plans</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/manage-savings-plan">Manage savings plans</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/discount-application">Savings-plan discount application</a></li>
+</ul>
+<h3 id="tool-references">Tool references</h3>
+<ul>
+<li><a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/README.md">Repository README</a></li>
+<li><a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/methodology.md">Assessment methodology</a></li>
+<li><a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/skills/vm-sku-retirement-report/references/data-sources.md">Data sources, permissions, and blind spots</a></li>
+</ul>
+</main>
+  <footer>Independent tool documentation. Sources checked October 21, 2026. No tenant changes or migration actions are performed by this page.</footer>
+</body>
+</html>

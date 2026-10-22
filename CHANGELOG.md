@@ -6,6 +6,16 @@ Only user-visible changes are listed; the full history is in the Git log.
 
 ## [Unreleased]
 
+### Fixed
+
+- The tenant index omits the cross-vendor warnings, SKU family reference, CPU-vendor naming guide and known
+  limitations sections and their navigation links. Subscription pages retain them. Collapsible section headings
+  use less vertical padding on desktop and mobile.
+- Codacy SARIF output is split into single-run files with distinct automation categories for the v4 uploader,
+  including when multiple runs use the same tool name or automation ID. Findings and rule metadata are preserved.
+- SARIF upload failures are temporarily non-blocking, with an explicit warning and job summary. Analysis and SARIF
+  preparation errors still fail the workflow; the pinned v4 uploader is retained rather than downgrading to v3.
+
 ## [1.2.3-c] - 2026-10-20
 
 ### Changed
@@ -162,3 +172,8 @@ First public release.
 [1.1.2]: https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/dist
 [1.1.0]: https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/dist
 [1.0.0]: https://github.com/AzaryaShaulov/Azure/tree/main/Assessments/VMSKURetirementReport/dist
+- Configuration tests now follow the standard `.github/instructions/` location. CI validates workflows with
+  checksum-verified actionlint and tests enforce full-SHA remote action references.
+- CI and release uploads select the current version's package/checksum only, instead of including historical archives.
+- Browser checks use a committed npm lockfile and cover index/subscription sections, navigation and compact heading
+  spacing on desktop and mobile. Output contract tests check zero/one/multiple-VM JSON shapes and CSV consistency.
