@@ -6,6 +6,10 @@ Only user-visible changes are listed; the full history is in the Git log.
 
 ## [Unreleased]
 
+### Added
+
+- Subscription HTML reports include per-SKU KPI cards counting VMs on already retired or retirement-announced sizes.
+
 ### Fixed
 
 - The tenant index omits the cross-vendor warnings, SKU family reference, CPU-vendor naming guide and known

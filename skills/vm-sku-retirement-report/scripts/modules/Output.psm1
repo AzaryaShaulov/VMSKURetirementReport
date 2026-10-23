@@ -899,6 +899,23 @@ function Get-Gen1VmCount {
     @($Assessments | Where-Object { $_ -and $_.Vm.HyperVGeneration -eq 'V1' }).Count
 }
 
+function New-RetiredSkuSummaryHtml {
+    param([AllowEmptyCollection()][object[]]$Assessments)
+    $included = @($Assessments | Where-Object {
+            $_ -and $_.Vm.SkuName -and $_.Lifecycle.EvidenceClass -in 'Already Retired', 'Confirmed Retirement', 'Retirement Announced'
+        })
+    $title = 'Retired and retiring VM sizes'
+    if ($included.Count -eq 0) {
+        return "<div class='sku-summary'><h3>$title</h3><p class='note'>No VMs are on retired or retirement-announced sizes in this subscription.</p></div>"
+    }
+    $cards = foreach ($group in ($included | Group-Object { "$($_.Vm.SkuName)|$($_.Lifecycle.EvidenceClass)" } | Sort-Object { $_.Group[0].Vm.SkuName }, { $_.Group[0].Lifecycle.EvidenceClass })) {
+        $item = $group.Group[0]
+        $tone = if ($item.Lifecycle.EvidenceClass -eq 'Already Retired') { 'red' } else { 'orange' }
+        "<div class='kpi kpi-$tone sku-kpi'><div class='kpi-label'>Current VM SKU</div><div class='sku-kpi-name'><code>$(ConvertTo-HtmlEncoded $item.Vm.SkuName)</code></div><div class='kpi-value'>$($group.Count)</div><div class='kpi-hint'>VMs &middot; $(New-Badge $item.Lifecycle.EvidenceClass)</div></div>"
+    }
+    "<div class='sku-summary'><h3>$title</h3><div class='sku-kpis'>$($cards -join "`n")</div><p class='note'>Counts include only VMs with Microsoft-confirmed retired or retirement-announced lifecycle evidence.</p></div>"
+}
+
 function New-VmSummaryRowHtml {
     <# One row of the VMs with Retiring SKUs table: current size, Microsoft status, retirement target and, with --check-modernization, the v6/v7 target and path. #>
     param([Parameter(Mandatory)]$Assessment, [switch]$CheckModernization, [switch]$HasDetails, [switch]$Alt)
@@ -1493,6 +1510,7 @@ function Export-HtmlReports {
         $mod = @($set | Where-Object Wave -eq 'Wave 4 - Modernization').Count
         $none = @($set | Where-Object Action -eq 'No Action Required').Count
         $gen1 = Get-Gen1VmCount -Assessments $set
+        $skuSummary = New-RetiredSkuSummaryHtml -Assessments $set
         $kp = @(
             (New-Kpi $set.Count 'VMs' 'neutral' "$(@($set | Where-Object { $_.Vm.PowerState -eq 'Running' }).Count) running")
             (New-Kpi $aff 'On retiring sizes' $(if ($aff) { 'orange' } else { 'green' }))
@@ -1548,7 +1566,7 @@ function Export-HtmlReports {
         $body = @(
             $staleHtml
             @(New-CollectionIssuesHtml -Issues $CollectionIssues -SubscriptionId $g.Name | Where-Object { $_ })
-            "<section id='overview' class='card'><h2>Overview</h2>$tilesHtml<div class='kpis'>$kp</div><div class='bottom-line'><h3>Bottom line</h3><ul>$bl</ul></div></section>"
+            "<section id='overview' class='card'><h2>Overview</h2>$tilesHtml<div class='kpis'>$kp</div>$skuSummary<div class='bottom-line'><h3>Bottom line</h3><ul>$bl</ul></div></section>"
             (New-TrackHtml -Tone 'retirement' -Label 'Required' -Title 'Retirement remediation' -Description "VMs on sizes Microsoft is retiring. Move them to the recommended size before Microsoft retires them.$(if ($includeOptional) { ' Optional-modernization VMs are also listed (-HtmlIncludeOptionalModernization).' })" -Body (@(
                         (New-Section -Id 'vms' -Title 'VMs with Retiring SKUs' -Body ($legend + $omittedNote + $table) -Intro "$scopeText$(if ($checkModernization) { ' The v6/v7 columns show each VM''s modernization target and its migration path next to its required retirement target.' }) Select a VM's Details to see what to do, what changes and what to validate; upgrade steps: $(New-LearnLink 'Resize' 'resize'), $(New-LearnLink 'NvmeConvert' 'SCSI to NVMe'), $(New-LearnLink 'Gen1TrustedLaunch' 'Gen1 to Trusted launch').")
                     ) -join "`n"))

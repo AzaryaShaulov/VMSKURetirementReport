@@ -3193,6 +3193,82 @@ Describe 'Per-subscription quota actions' {
     }
 }
 
+Describe 'Per-subscription retired SKU summary' {
+    It 'groups retired and retirement-announced VMs by SKU and excludes other lifecycle classes' {
+        InModuleScope Output {
+            $assessment = { param($sku, $status) [pscustomobject]@{
+                    Vm = [pscustomobject]@{ SkuName = $sku }
+                    Lifecycle = [pscustomobject]@{ EvidenceClass = $status }
+                } }
+            $html = New-RetiredSkuSummaryHtml -Assessments @(
+                (& $assessment 'Standard_DS3_v2' 'Confirmed Retirement')
+                (& $assessment 'Standard_DS3_v2' 'Confirmed Retirement')
+                (& $assessment 'Standard_NC6s_v3' 'Already Retired')
+                (& $assessment 'Standard_HB120rs_v2' 'Retirement Announced')
+                (& $assessment 'Standard_D4s_v3' 'Modernization Recommended')
+                (& $assessment 'Standard_Unknown' 'Unable to Confirm')
+                (& $assessment 'Standard_D4s_v5' 'No Retirement Announced')
+            )
+
+            $html | Should -Match "<div class='sku-kpis'>"
+            $html | Should -Match "<div class='kpi kpi-orange sku-kpi'>.*<code>Standard_DS3_v2</code>.*<div class='kpi-value'>2</div>.*Confirmed Retirement"
+            $html | Should -Match "<div class='kpi kpi-red sku-kpi'>.*<code>Standard_NC6s_v3</code>.*<div class='kpi-value'>1</div>.*Already Retired"
+            $html | Should -Match "<div class='kpi kpi-orange sku-kpi'>.*<code>Standard_HB120rs_v2</code>.*<div class='kpi-value'>1</div>.*Retirement Announced"
+            $html.IndexOf('Standard_DS3_v2') | Should -BeLessThan $html.IndexOf('Standard_HB120rs_v2')
+            $html.IndexOf('Standard_HB120rs_v2') | Should -BeLessThan $html.IndexOf('Standard_NC6s_v3')
+            $html | Should -Not -Match 'Standard_D4s_v3|Standard_Unknown|Standard_D4s_v5|sku-count-table'
+        }
+    }
+
+    It 'encodes SKU text and shows an empty state when no retirement statuses match' {
+        InModuleScope Output {
+            $unsafe = [pscustomobject]@{
+                Vm = [pscustomobject]@{ SkuName = 'Standard_<img>&' }
+                Lifecycle = [pscustomobject]@{ EvidenceClass = 'Confirmed Retirement' }
+            }
+            $html = New-RetiredSkuSummaryHtml -Assessments @($unsafe)
+            $html | Should -Match 'Standard_&lt;img&gt;&amp;'
+            $html | Should -Not -Match '<img>'
+            $html | Should -Match "<div class='sku-kpi-name'><code>Standard_&lt;img&gt;&amp;</code></div>"
+
+            $empty = New-RetiredSkuSummaryHtml -Assessments @(
+                [pscustomobject]@{
+                    Vm = [pscustomobject]@{ SkuName = 'Standard_D4s_v5' }
+                    Lifecycle = [pscustomobject]@{ EvidenceClass = 'No Retirement Announced' }
+                }
+            )
+            $empty | Should -Match 'No VMs are on retired or retirement-announced sizes in this subscription'
+            $empty | Should -Not -Match '<table'
+        }
+    }
+
+    It 'counts only each subscription own VMs in the rendered subscription reports' {
+        $ds3a = Invoke-TestAssessment (New-TestVm -Name 'vm-ds3-a' -Sku 'Standard_DS3_v2' -Gen 'V1')
+        $ds3b = Invoke-TestAssessment (New-TestVm -Name 'vm-ds3-b' -Sku 'Standard_DS3_v2' -Gen 'V1')
+        $nc6 = Invoke-TestAssessment (New-TestVm -Name 'vm-nc6' -Sku 'Standard_NC6s_v3' -Gen 'V2')
+        $announced = Invoke-TestAssessment (New-TestVm -Name 'vm-hb' -Sku 'Standard_HB120rs_v2' -Gen 'V2')
+        $modern = Invoke-TestAssessment (New-TestVm -Name 'vm-modern' -Sku 'Standard_D4s_v3' -Gen 'V2')
+        $unknown = Invoke-TestAssessment (New-TestVm -Name 'vm-unknown' -Sku 'Standard_Unknown' -Gen 'V2')
+        $otherSubVm = New-TestVm -Name 'vm-other-sub' -Sku 'Standard_DS3_v2' -Gen 'V1'
+        $otherSubVm.SubscriptionId = 's2'
+        $otherSub = Invoke-TestAssessment $otherSubVm
+        $otherSub.SubscriptionName = 'sub2'
+        $out = Export-TestOutput -Assessments @($ds3a, $ds3b, $nc6, $announced, $modern, $unknown, $otherSub) -Html
+
+        $sub1 = Get-Content (Join-Path $out 'sub1-s1.html') -Raw
+        $cards1 = [regex]::Match($sub1, "(?s)<div class='sku-kpis'>.*?</div><p class='note'>Counts include").Value
+        $cards1 | Should -Match "<div class='kpi kpi-orange sku-kpi'>.*<code>Standard_<wbr>DS3_v2</code>.*<div class='kpi-value'>2</div>.*Confirmed Retirement"
+        $cards1 | Should -Match "<div class='kpi kpi-red sku-kpi'>.*<code>Standard_<wbr>NC6s_v3</code>.*<div class='kpi-value'>1</div>.*Already Retired"
+        $cards1 | Should -Match "<div class='kpi kpi-orange sku-kpi'>.*<code>Standard_<wbr>HB120rs_v2</code>.*<div class='kpi-value'>1</div>.*Retirement Announced"
+        $cards1 | Should -Not -Match 'Standard_Unknown|>Unable to Confirm<|>Modernization Recommended<|sku-count-table'
+
+        $sub2 = Get-Content (Join-Path $out 'sub2-s2.html') -Raw
+        $cards2 = [regex]::Match($sub2, "(?s)<div class='sku-kpis'>.*?</div><p class='note'>Counts include").Value
+        $cards2 | Should -Match "<div class='kpi kpi-orange sku-kpi'>.*<code>Standard_<wbr>DS3_v2</code>.*<div class='kpi-value'>1</div>.*Confirmed Retirement"
+        $cards2 | Should -Not -Match 'Standard_<wbr>NC6s_v3|Standard_<wbr>HB120rs_v2'
+    }
+}
+
 Describe 'Gen1 VM count and size layout' {
     It 'counts only Hyper-V generation 1 VMs' {
         InModuleScope Output {
