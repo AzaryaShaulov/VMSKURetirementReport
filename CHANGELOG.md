@@ -9,7 +9,9 @@ Only user-visible changes are listed; the full history is in the Git log.
 ### Added
 
 - FAQ guidance adds early retirement-planning considerations, a retirement and RI eligibility table, an RI/net-cost
-  limitation, and Service Health references linked to official guidance.
+  limitation, and example Service Health IDs linked to related official guidance.
+- Tenant and subscription HTML Bottom line sections include example Service Health notice IDs with links to related
+  Microsoft guidance and an applicability reminder.
 
 - Subscription HTML reports include per-SKU KPI cards counting VMs on already retired or retirement-announced sizes.
 
@@ -26,6 +28,7 @@ Only user-visible changes are listed; the full history is in the Git log.
 ### Changed
 
 - Removed the PAYGO / month column from HTML VM tables; pricing remains available in CSV and JSON exports.
+- Simplified the README's download, verification and run instructions into separate steps.
 
 ## [1.2.3-c] - 2026-10-20
 

@@ -505,11 +505,14 @@ The Dv3/Dsv3/Ev3/Esv3 retirement covers all 32 sizes in those series, excluding 
 
 ## Service Health notice register
 
-| Topic | Related official Microsoft guidance | Evidence boundary |
+These example IDs were observed in a prior assessment and may not apply to every subscription. Their links open
+related Microsoft guidance, not the individual Service Health notices.
+
+| Service Health ID and topic | Related official Microsoft guidance | Evidence boundary |
 |---|---|---|
-| VM retirement and modernization | [Retirement schedule][retirements] and [modernization guide][modernization-guide] | Supports lifecycle interpretation, not a full price-affected SKU list |
-| Regional pricing updates | [Azure Service Health][service-health] and [Azure pricing calculator][pricing-calculator] | Locate the full notice and check applicable pricing dimensions; the calculator is not the notice or proof of a future increase |
-| Reserved Instance eligibility | [Legacy RI transition][legacy-ri] and [reservation discount application][ri-discount] | Explains purchase/renewal restrictions and existing benefits, not actual tenant coverage |
+| [`PRFR-_4Z`][retirements] - VM retirement and modernization | [Retirement schedule][retirements] and [modernization guide][modernization-guide] | Supports lifecycle interpretation, not a full price-affected SKU list |
+| [`JGW1-KG0`][service-health] - Regional pricing updates | [Azure Service Health][service-health] and [Azure pricing calculator][pricing-calculator] | Locate the full notice and check applicable pricing dimensions; the calculator is not the notice or proof of a future increase |
+| [`HZ28-GKZ`][legacy-ri] - Reserved Instance eligibility | [Legacy RI transition][legacy-ri] and [reservation discount application][ri-discount] | Explains purchase/renewal restrictions and existing benefits, not actual tenant coverage |
 
 These are **related guidance links**, not public copies of the full notices. In [Azure Service Health][service-health], locate the event by its tracking ID using your existing read access. If the event is unavailable, obtain an authorized saved copy; do not infer missing details. The collector currently includes retirement-subtype Health Advisories only, so this guidance is not a complete list of pricing advisories.
 

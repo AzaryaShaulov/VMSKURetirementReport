@@ -42,12 +42,25 @@ async function checks(browser) {
       const style = getComputedStyle(e);
       return parseFloat(style.paddingTop) === padding && parseFloat(style.paddingBottom) === padding;
     }), expected);
+  const checkNotice = async page => page.locator('.bottom-line li:last-child').evaluate(el => {
+    const expected = [
+      ['PRFR-_4Z', 'https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions'],
+      ['JGW1-KG0', 'https://learn.microsoft.com/en-us/azure/service-health/overview'],
+      ['HZ28-GKZ', 'https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026'],
+    ];
+    const links = [...el.querySelectorAll('a')];
+    return links.length === expected.length &&
+      expected.every(([id, url], i) => links[i].textContent === id && links[i].href === url) &&
+      el.textContent.includes('Example IDs from a prior assessment; verify applicability') &&
+      el.textContent.includes('not the individual notices');
+  });
   await p.goto(indexUrl);
   ok('index omits reference sections and their navigation links', await p.evaluate(ids =>
     ids.every(id => !document.getElementById(id) && !document.querySelector(`a[href="#${id}"]`)), referenceIds));
   ok('index retains upgrade guidance', await p.locator('#upgrade-guidance').count() === 1);
   ok('index navigation targets exist', await checkNavigation(p));
   ok('index headings have compact desktop padding', await checkHeading(p, 4.4));
+  ok('index Bottom line ends with linked example Service Health IDs', await checkNotice(p));
   const subLink = p.locator('#subscriptions a').filter({ hasText: /./ }).first();
   await subLink.click();
   ok('index subscription link opens a report', new URL(p.url()).pathname.endsWith('.html') &&
@@ -57,6 +70,7 @@ async function checks(browser) {
     ids.every(id => document.querySelector(`details#${id}`)), referenceIds));
   ok('subscription navigation targets exist', await checkNavigation(p));
   ok('subscription headings have compact desktop padding', await checkHeading(p, 4.4));
+  ok('subscription Bottom line ends with linked example Service Health IDs', await checkNotice(p));
   const tableShape = await p.locator('table.vm-table').evaluate(table => {
     const header = table.querySelector('thead tr');
     const columns = [...header.cells].reduce((sum, cell) => sum + cell.colSpan, 0);
@@ -119,6 +133,7 @@ async function checks(browser) {
     const c = await browser.newContext({ viewport: { width, height: 800 } });
     const q = await c.newPage(); await q.goto(url);
     ok(`${label}: subscription headings remain compact`, await checkHeading(q, 4.4));
+    ok(`${label}: subscription Bottom line retains the notice`, await checkNotice(q));
     await q.locator('tr.vm-summary-row').nth(1).locator('.vm-toggle-label').click();
     const w = await q.locator('tr.vm-detail-row').nth(1).locator('.vm-detail').boundingBox();
     ok(`${label}: details fit the viewport without page overflow`, w.width <= width && !(await q.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
@@ -126,6 +141,7 @@ async function checks(browser) {
     ok(`${label}: index fits the viewport without page overflow`, !(await q.evaluate(() => document.documentElement.scrollWidth > innerWidth)));
     ok(`${label}: index navigation targets exist`, await checkNavigation(q));
     ok(`${label}: index headings remain compact`, await checkHeading(q, 4.4));
+    ok(`${label}: index Bottom line retains the notice`, await checkNotice(q));
     await c.close();
   }
   return out;

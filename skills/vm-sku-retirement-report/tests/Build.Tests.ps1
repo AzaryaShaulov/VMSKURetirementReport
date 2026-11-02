@@ -71,6 +71,40 @@ Describe 'Standalone repository configuration' {
         $readme | Should -Match ([regex]::Escape("[![CI]($workflow/badge.svg)]($workflow)"))
     }
 
+    It 'verifies the README ZIP before extraction when the checksum is <Case>' -ForEach @(
+        @{ Case = 'valid'; Result = 'success' }
+        @{ Case = 'incorrect'; Result = 'failure' }
+        @{ Case = 'missing'; Result = 'failure' }
+        @{ Case = 'altered ZIP'; Result = 'failure' }
+    ) {
+        $readme = Get-Content (Join-Path $ProjectRoot 'README.md') -Raw
+        $code = [regex]::Match($readme, '(?s)### 2\. Verify and extract.*?```powershell\s*\r?\n(.*?)\r?\n```').Groups[1].Value
+        $code | Should -Not -BeNullOrEmpty
+        $profileDir = Join-Path $TestDrive "readme-$Case"
+        $downloads = Join-Path $profileDir 'Downloads'
+        $destination = Join-Path $profileDir 'installed'
+        New-Item -ItemType Directory -Path $downloads | Out-Null
+        $packageName = "VMSKURetirementReport-v$(Get-RepoVersion).zip"
+        $zip = Join-Path $downloads $packageName
+        $release = Join-Path $ProjectRoot "dist\$packageName"
+        Copy-Item -LiteralPath $release -Destination $zip
+        if ($Case -in 'valid', 'altered ZIP') { Copy-Item -LiteralPath "$release.sha256" -Destination "$zip.sha256" }
+        elseif ($Case -eq 'incorrect') { Set-Content -LiteralPath "$zip.sha256" -Value "$('0' * 64)  $packageName" }
+        if ($Case -eq 'altered ZIP') { [System.IO.File]::AppendAllText($zip, 'tampered') }
+        $homeLiteral = "'" + $profileDir.Replace("'", "''") + "'"
+        $destinationLiteral = "'" + $destination.Replace("'", "''") + "'"
+        $code = $code.Replace("(Join-Path `$HOME 'VMSKURetirementReport')", $destinationLiteral).Replace('Join-Path $HOME', "Join-Path $homeLiteral")
+        $snippet = [scriptblock]::Create($code)
+        if ($Result -eq 'success') {
+            & $snippet
+            Join-Path $destination 'vm-sku-retirement-report\scripts\Invoke-VMSKURetirementReport.ps1' | Should -Exist
+        }
+        else {
+            { & $snippet } | Should -Throw
+            Test-Path -LiteralPath $destination | Should -BeFalse
+        }
+    }
+
     It 'uses standalone development history without rewriting historical release links' {
         $changelog = Get-Content (Join-Path $ProjectRoot 'CHANGELOG.md') -Raw
         $changelog | Should -Match '(?m)^\[Unreleased\]: https://github\.com/AzaryaShaulov/VMSKURetirementReport/commits/main\r?$'

@@ -1627,6 +1627,40 @@ Describe 'Report name and table columns' {
         $ReportSub | Should -Match '<a href=''#limitations''>Limitations</a><a href="https://github.com/AzaryaShaulov/VMSKURetirementReport/blob/main/docs/faq\.md"'
     }
 
+    It 'ends both HTML Bottom line lists with the same linked example Service Health IDs' {
+        $links = @(
+            @{ Id = 'PRFR-_4Z'; Url = 'https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions' }
+            @{ Id = 'JGW1-KG0'; Url = 'https://learn.microsoft.com/en-us/azure/service-health/overview' }
+            @{ Id = 'HZ28-GKZ'; Url = 'https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026' }
+        )
+        foreach ($page in $ReportIndex, $ReportSub) {
+            $bottom = [regex]::Match($page, "(?s)<div class='bottom-line'>.*?</div>").Value
+            $bottom | Should -Not -BeNullOrEmpty
+            $items = @([regex]::Matches($bottom, '(?s)<li>.*?</li>') | ForEach-Object Value)
+            $items.Count | Should -BeGreaterThan 1
+            $last = $items[-1]
+            $last | Should -Match '<strong>Service Health Notice:</strong>'
+            $last | Should -Match 'Example IDs from a prior assessment; verify applicability'
+            $last | Should -Match 'related Microsoft guidance, not the individual notices'
+            foreach ($link in $links) {
+                $expected = "<a href='$($link.Url)' target='_blank' rel='noopener noreferrer'>$($link.Id)</a>"
+                $last | Should -Match ([regex]::Escape($expected))
+                ([regex]::Matches($bottom, [regex]::Escape($link.Id))).Count | Should -Be 1
+            }
+        }
+    }
+
+    It 'retains the Service Health note in an empty estate Bottom line' {
+        InModuleScope Output {
+            $bottom = New-BottomLineHtml -Assessments @() -TenantView
+            $items = @([regex]::Matches($bottom, '(?s)<li>.*?</li>') | ForEach-Object Value)
+            $items.Count | Should -Be 2
+            $items[0] | Should -Match 'No virtual machines were found in scope'
+            $items[-1] | Should -Match 'Service Health Notice'
+            foreach ($id in 'PRFR-_4Z', 'JGW1-KG0', 'HZ28-GKZ') { $items[-1] | Should -Match $id }
+        }
+    }
+
     It 'matches the FAQ header background color in both assessment pages' {
         $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
         $faq = Get-Content -LiteralPath (Join-Path $docs 'faq.html') -Raw
@@ -1676,14 +1710,30 @@ Describe 'Report name and table columns' {
         }
     }
 
-    It 'keeps Service Health guidance without publishing saved notice details' {
+    It 'links the example Service Health IDs to related guidance without publishing saved notice details' {
         $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
         $markdown = Get-Content -LiteralPath (Join-Path $docs 'faq.md') -Raw
         $html = Get-Content -LiteralPath (Join-Path $docs 'faq.html') -Raw
+        $readme = Get-Content -LiteralPath (Join-Path (Split-Path $docs -Parent) 'README.md') -Raw
+        $intro = [regex]::Match($readme, '(?s)Find Azure VMs affected.*?(?=## Run it with PowerShell)').Value
+        $expected = @(
+            @{ Id = 'PRFR-_4Z'; Reference = 'retirements'; Url = 'https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions' }
+            @{ Id = 'JGW1-KG0'; Reference = 'service-health'; Url = 'https://learn.microsoft.com/en-us/azure/service-health/overview' }
+            @{ Id = 'HZ28-GKZ'; Reference = 'legacy-ri'; Url = 'https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026' }
+        )
+        foreach ($entry in $expected) {
+            $intro | Should -Match ([regex]::Escape(('[`{0}`]({1})' -f $entry.Id, $entry.Url)))
+            $markdown | Should -Match ([regex]::Escape(('[`{0}`][{1}]' -f $entry.Id, $entry.Reference)))
+            $markdown | Should -Match ([regex]::Escape(('[{0}]: {1}' -f $entry.Reference, $entry.Url)))
+            $html | Should -Match ([regex]::Escape(('<a href="{0}"><code>{1}</code></a>' -f $entry.Url, $entry.Id)))
+            $intro.IndexOf($entry.Id) | Should -BeLessThan $intro.IndexOf('Review replacement options')
+        }
+        $intro | Should -Match '(?s)not the individual\s+notices'
+        $intro | Should -Match 'Applicability varies by subscription'
         foreach ($content in $markdown, $html) {
             foreach ($required in 'VM retirement and modernization', 'Regional pricing updates', 'Reserved Instance eligibility',
                 'related guidance links', 'not public copies of the full notices', 'retirement-subtype Health Advisories only',
-                'not a complete list of pricing advisories') {
+                'not a complete list of pricing advisories', 'may not apply to every subscription') {
                 $content | Should -Match ([regex]::Escape($required))
             }
             foreach ($removed in 'Tracking ID</th>', 'Saved title', 'Snapshot:', 'impactStart',
@@ -1692,7 +1742,7 @@ Describe 'Report name and table columns' {
             }
             $section = [regex]::Match($content, '(?s)(?:## Service Health notice register|<h2 id="service-health-notice-register">.*?</h2>)(.*?)(?:## Sources and scope|<h2 id="sources-and-scope">)').Groups[1].Value
             $section | Should -Not -BeNullOrEmpty
-            $section | Should -Not -Match '(?-i:\b[A-Z0-9_]{4}-[A-Z0-9_]{3}\b)'
+            $section | Should -Not -Match '\b\d{4}-\d{2}-\d{2}\b'
         }
         ([regex]::Matches($html, '<div class="commercial-table" role="region" aria-label="[^"]+" tabindex="0">')).Count | Should -Be 2
         $html | Should -Match '\.commercial-table \{ overflow-x: auto;'

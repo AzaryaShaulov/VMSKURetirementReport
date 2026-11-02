@@ -1290,6 +1290,21 @@ function Get-BottomLine {
     return $out.ToArray()
 }
 
+function New-BottomLineHtml {
+    param([Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Assessments, [switch]$TenantView)
+    $notices = @(
+        @{ Id = 'PRFR-_4Z'; Url = 'https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/lifecycle/retirements-and-capacity-restrictions' }
+        @{ Id = 'JGW1-KG0'; Url = 'https://learn.microsoft.com/en-us/azure/service-health/overview' }
+        @{ Id = 'HZ28-GKZ'; Url = 'https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026' }
+    )
+    $links = @($notices | ForEach-Object {
+            "<a href='$(ConvertTo-HtmlEncoded $_.Url)' target='_blank' rel='noopener noreferrer'>$(ConvertTo-HtmlEncoded $_.Id)</a>"
+        }) -join ', '
+    $lines = @(Get-BottomLine -Assessments $Assessments -TenantView:$TenantView)
+    $lines += "<strong>Service Health Notice:</strong> $links. Example IDs from a prior assessment; verify applicability. Links open related Microsoft guidance, not the individual notices."
+    return (($lines | ForEach-Object { "<li>$_</li>" }) -join '')
+}
+
 function Get-FamilyCpuOptions {
     <# Latest generation per CPU vendor for a VM family letter, derived from the Microsoft Learn processor catalog. #>
     param($ProcessorCatalog, [Parameter(Mandatory)][string]$Letter)
@@ -1451,7 +1466,7 @@ function Export-HtmlReports {
         (New-Kpi $s.VmsRequiringQuotaIncrease 'Need quota increase' $(if ($s.VmsRequiringQuotaIncrease) { 'orange' } else { 'neutral' }))
         (New-Kpi $s.HighConfidence 'High-confidence moves' 'green')
     ) -join ''
-    $bottom = (Get-BottomLine -Assessments $Assessments -TenantView | ForEach-Object { "<li>$_</li>" }) -join ''
+    $bottom = New-BottomLineHtml -Assessments $Assessments -TenantView
     $srcHtml = (@($CatalogResult.Catalog.sources) | ForEach-Object { "<li><a href='$(& $e $_.Url)' target='_blank'>$(& $e $(if ($_.Title) { $_.Title -replace ' - Azure Virtual Machines \| Microsoft Learn$', '' } else { $_.Name }))</a> <span class='muted'>&middot; updated $(& $e $_.UpdatedAt) &middot; retrieved $(& $e $_.RetrievedUtc)</span></li>" }) -join ''
     $warn = $staleHtml
     $subscriptionNames = @{}
@@ -1519,7 +1534,7 @@ function Export-HtmlReports {
             (New-Kpi @($set | Where-Object QuotaStatus -eq 'Quota Increase Required').Count 'Need quota increase' 'neutral')
             (New-Kpi @($set | Where-Object { $_.Confidence -and $_.Confidence.Level -eq 'HIGH' }).Count 'High-confidence moves' 'green')
         ) -join ''
-        $bl = (Get-BottomLine -Assessments $set | ForEach-Object { "<li>$_</li>" }) -join ''
+        $bl = New-BottomLineHtml -Assessments $set
         $retiring = @($set | Where-Object { & $listed $_ })
         $retiringOnly = @($set | Where-Object { Test-RetiringVm -Assessment $_ })
         $tilesHtml = New-TrackTilesHtml -RetiringCount $retiringOnly.Count

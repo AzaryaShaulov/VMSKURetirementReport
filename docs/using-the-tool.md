@@ -151,6 +151,10 @@ Each subscription page's **Retired and retiring VM sizes** KPI cards group VMs b
 show the VM count per SKU. They include only `Already Retired`, `Confirmed Retirement`, and `Retirement Announced`;
 modernization-only or unconfirmed entries are excluded.
 
+The tenant and subscription **Bottom line** includes example Service Health notice IDs from a prior assessment. The
+links open related Microsoft guidance, not the individual notices; verify whether each notice applies to your subscription
+in Azure Service Health. The examples are not an inventory of notices found by the current run.
+
 | Result | Meaning |
 |---|---|
 | **Retired / Confirmed Retirement** | Microsoft lifecycle evidence indicates that the size is retired or has an announced retirement. Review the source and planned date in the evidence and CSV/JSON. |
