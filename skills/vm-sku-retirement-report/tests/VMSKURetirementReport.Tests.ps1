@@ -1641,8 +1641,8 @@ Describe 'Report name and table columns' {
         $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
         $html = Get-Content -LiteralPath (Join-Path $docs 'faq.html') -Raw
         $markdown = Get-Content -LiteralPath (Join-Path $docs 'faq.md') -Raw
-        ([regex]::Matches($html, '<details class="faq-question"')).Count | Should -Be 45
-        ([regex]::Matches($markdown, '(?m)^<details>')).Count | Should -Be 45
+        ([regex]::Matches($html, '<details class="faq-question"')).Count | Should -Be 46
+        ([regex]::Matches($markdown, '(?m)^<details>')).Count | Should -Be 46
         foreach ($content in $html, $markdown) {
             $content | Should -Not -Match '<details[^>]*\sopen(?:\s|=|>)'
             $content | Should -Not -Match 'Microsoft (?:says|states|currently|explicitly|documents|identifies|recommends)'
@@ -1652,6 +1652,89 @@ Describe 'Report name and table columns' {
         }
         foreach ($link in [regex]::Matches($html, 'href="#([^"]+)"')) {
             $html | Should -Match ('id="' + [regex]::Escape($link.Groups[1].Value) + '"')
+        }
+    }
+
+    It 'keeps RI coverage and retirement guidance explicit in both FAQ formats' {
+        $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
+        foreach ($file in 'faq.md', 'faq.html') {
+            $content = Get-Content -LiteralPath (Join-Path $docs $file) -Raw
+            $content | Should -Match 'RI coverage and net cost: Not assessed'
+            $content.IndexOf('RI coverage and net cost: Not assessed') | Should -BeLessThan $content.IndexOf('On this page')
+            foreach ($required in 'Retirement and RI eligibility', 'remain valid for their purchased term', 'same flexibility group',
+                'authorized billing exports', 'November 2, 2026') {
+                $content | Should -Match ([regex]::Escape($required))
+            }
+            foreach ($url in 'https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/reservation-discount-application',
+                'https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026',
+                'https://learn.microsoft.com/en-us/azure/service-health/overview') {
+                $content | Should -Match ([regex]::Escape($url))
+            }
+            $content | Should -Match '#retirement-and-ri-eligibility'
+            $content | Should -Match '#9-planning-ahead-for-retirement'
+            $content | Should -Match '#service-health-notice-register'
+        }
+    }
+
+    It 'keeps Service Health guidance without publishing saved notice details' {
+        $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
+        $markdown = Get-Content -LiteralPath (Join-Path $docs 'faq.md') -Raw
+        $html = Get-Content -LiteralPath (Join-Path $docs 'faq.html') -Raw
+        foreach ($content in $markdown, $html) {
+            foreach ($required in 'VM retirement and modernization', 'Regional pricing updates', 'Reserved Instance eligibility',
+                'related guidance links', 'not public copies of the full notices', 'retirement-subtype Health Advisories only',
+                'not a complete list of pricing advisories') {
+                $content | Should -Match ([regex]::Escape($required))
+            }
+            foreach ($removed in 'Tracking ID</th>', 'Saved title', 'Snapshot:', 'impactStart',
+                'impactMitigation', 'lastUpdate', 'Raw event dates are not policy dates') {
+                $content | Should -Not -Match ([regex]::Escape($removed))
+            }
+            $section = [regex]::Match($content, '(?s)(?:## Service Health notice register|<h2 id="service-health-notice-register">.*?</h2>)(.*?)(?:## Sources and scope|<h2 id="sources-and-scope">)').Groups[1].Value
+            $section | Should -Not -BeNullOrEmpty
+            $section | Should -Not -Match '(?-i:\b[A-Z0-9_]{4}-[A-Z0-9_]{3}\b)'
+        }
+        ([regex]::Matches($html, '<div class="commercial-table" role="region" aria-label="[^"]+" tabindex="0">')).Count | Should -Be 2
+        $html | Should -Match '\.commercial-table \{ overflow-x: auto;'
+    }
+
+    It 'retains the retirement table without a price-change discussion' {
+        $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
+        $markdown = Get-Content -LiteralPath (Join-Path $docs 'faq.md') -Raw
+        $html = Get-Content -LiteralPath (Join-Path $docs 'faq.html') -Raw
+        $mdSection = [regex]::Match($markdown, '(?s)## Retirement and RI eligibility(.*?)## Service Health notice register').Groups[1].Value
+        $htmlSection = [regex]::Match($html, '(?s)<h2 id="retirement-and-ri-eligibility">.*?(?=<h2 id="service-health-notice-register">)').Value
+        foreach ($section in $mdSection, $htmlSection) {
+            $section | Should -Not -BeNullOrEmpty
+            $section | Should -Not -Match '(?i)price|pricing'
+            foreach ($required in 'D, Ds, Dv2, Dsv2, Ls', 'Av2/Amv2, B-series v1, F, Fs, Fsv2, G, Gs, Lsv2',
+                'Dv3, Dsv3, Ev3, Esv3', 'May 1, 2028', 'November 15, 2028', 'November 15, 2029',
+                'One-year RI unavailable', 'One-year and three-year RI unavailable') {
+                $section | Should -Match ([regex]::Escape($required))
+            }
+        }
+        ([regex]::Match($mdSection, '(?m)^\| Selected series.*$').Value.Trim('|').Split('|')).Count | Should -Be 3
+        ([regex]::Matches([regex]::Match($htmlSection, '(?s)<thead>.*?</thead>').Value, '<th>')).Count | Should -Be 3
+        foreach ($content in $markdown, $html) {
+            $content | Should -Not -Match 'February 2027 regional price update|reported screening reference|Potentially price-impacted - verify'
+            $content | Should -Match 'id="retirement-and-price-change-sku-scope"'
+        }
+    }
+
+    It 'explains early retirement planning without guaranteeing performance or capacity' {
+        $docs = Join-Path (Split-Path (Split-Path $Root -Parent) -Parent) 'docs'
+        foreach ($file in 'faq.md', 'faq.html') {
+            $content = Get-Content -LiteralPath (Join-Path $docs $file) -Raw
+            $answer = [regex]::Match($content, '(?s)<summary>Q46\. Why start planning retirement migrations now instead of waiting\?</summary>(.*?)</details>').Groups[1].Value
+            $answer | Should -Not -BeNullOrEmpty
+            foreach ($required in 'Quota and capacity', 'target-family and regional quota', 'does not guarantee physical capacity',
+                'Potential CPU and hardware benefits', 'does not guarantee faster performance', 'IOPS', 'throughput',
+                'others may reduce them', 'observed workload demand', 'Gen1/Gen2', 'NVMe or SCSI',
+                'Pilot', 'controlled waves', 'tested rollback', 'cannot be relied on as the rollback target',
+                'does not guarantee target capacity, a lower bill, higher performance or a successful migration') {
+                $answer | Should -Match ([regex]::Escape($required))
+            }
+            $answer | Should -Match '(?s)not.*mean every VM must be resized immediately'
         }
     }
 
@@ -3614,7 +3697,7 @@ Describe 'In-table collapsible VM details' {
     }
     It 'puts a collapsed detail row under each VM and drops the separate details section' {
         ([regex]::Matches($DetailHtml, "(?s)<tr class='vm-summary-row[^']*'[^>]*>.*?</tr>\s*<tr class='vm-detail-row'")).Count | Should -Be 2
-        $DetailHtml | Should -Match "<td colspan='7' class='vm-detail-cell'><div class=.vm-detail.>"
+        $DetailHtml | Should -Match "<td colspan='6' class='vm-detail-cell'><div class=.vm-detail.>"
         $DetailHtml | Should -Not -Match "id='details'|<h2>VMs with Retiring SKUs details</h2>|href='#details'|<details class=.vm."
         $DetailHtml | Should -Not -Match '<script'
         # The checkbox sits directly before its label, which the CSS selectors rely on.

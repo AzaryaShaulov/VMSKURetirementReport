@@ -8,6 +8,9 @@ Only user-visible changes are listed; the full history is in the Git log.
 
 ### Added
 
+- FAQ guidance adds early retirement-planning considerations, a retirement and RI eligibility table, an RI/net-cost
+  limitation, and Service Health references linked to official guidance.
+
 - Subscription HTML reports include per-SKU KPI cards counting VMs on already retired or retirement-announced sizes.
 
 ### Fixed
@@ -19,6 +22,10 @@ Only user-visible changes are listed; the full history is in the Git log.
   including when multiple runs use the same tool name or automation ID. Findings and rule metadata are preserved.
 - SARIF upload failures are temporarily non-blocking, with an explicit warning and job summary. Analysis and SARIF
   preparation errors still fail the workflow; the pinned v4 uploader is retained rather than downgrading to v3.
+
+### Changed
+
+- Removed the PAYGO / month column from HTML VM tables; pricing remains available in CSV and JSON exports.
 
 ## [1.2.3-c] - 2026-10-20
 

@@ -939,7 +939,6 @@ function New-VmSummaryRowHtml {
     elseif ($p -and -not $s.RetirementRequired -and -not $s.RetirementUnconfirmed) { "<span class='muted'>Not required</span><div class='sub'>Optional move: <code>$(& $e $p.SkuName)</code></div>" }
     elseif ($a.Action -eq 'No Action Required') { "<span class='muted'>Current generation</span>" }
     else { "<span class='muted'>None found</span>" }
-    $cost = if ($a.Pricing -and $a.Pricing.CurrentMonthly) { "`$$([math]::Round($a.Pricing.CurrentMonthly))$(if ($a.Pricing.TargetMonthly) { " &rarr; `$$([math]::Round($a.Pricing.TargetMonthly))" })" } else { "<span class='muted'>&ndash;</span>" }
     $nextStep = "<span class='muted'>No action required</span>"
     if ($a.Action -ne 'No Action Required') {
         $nextStep = New-SpecLineHtml -Label 'Readiness' -Value (& $e $r.DeploymentReadiness) -Tone (Get-ToneClass $r.DeploymentReadiness)
@@ -960,14 +959,14 @@ function New-VmSummaryRowHtml {
         $modernQuota = if ($s.ModernizationTargetSku -and $s.ModernizationQuotaStatus) { New-SpecLineHtml -Label 'Quota' -Value (& $e $s.ModernizationQuotaStatus) -Tone (Get-ToneClass $s.ModernizationQuotaStatus) } else { '' }
         $optional = "<td class='target-cell modernization-target-cell'>$modernCell$modernStatus$modernQuota</td><td class='path-cell'><div class='path-primary'>$(& $e $s.ModernizationPath)</div></td>"
     }
-    "<tr class='vm-summary-row$(if ($Alt) { ' alt' })' id='$anchor'><td>$toggle$link<div class='sub'>$(& $e $r.ResourceGroup) &middot; $(& $e $r.Region)$(if ($r.Zone) { " &middot; zone $(& $e $r.Zone)" }) &middot; $(& $e $r.PowerState)</div></td><td>$currentCell</td><td>$(New-Badge $r.LifecycleStage)<div class='sub'>$(& $e $r.EvidenceClass)</div></td><td class='target-cell retirement-target-cell'>$retirementCell</td><td class='change-cell'>$(Get-MaterialChangeLinesHtml -Assessment $a)</td><td>$nextStep</td>$optional<td class='num nowrap'>$cost</td></tr>"
+    "<tr class='vm-summary-row$(if ($Alt) { ' alt' })' id='$anchor'><td>$toggle$link<div class='sub'>$(& $e $r.ResourceGroup) &middot; $(& $e $r.Region)$(if ($r.Zone) { " &middot; zone $(& $e $r.Zone)" }) &middot; $(& $e $r.PowerState)</div></td><td>$currentCell</td><td>$(New-Badge $r.LifecycleStage)<div class='sub'>$(& $e $r.EvidenceClass)</div></td><td class='target-cell retirement-target-cell'>$retirementCell</td><td class='change-cell'>$(Get-MaterialChangeLinesHtml -Assessment $a)</td><td>$nextStep</td>$optional</tr>"
 }
 
 function New-VmTableHtml {
     <# The single per-VM table. Required retirement columns always; optional v6/v7 columns only with --check-modernization. -Details maps a VM anchor id to its detail block, rendered as a collapsed row under that VM. #>
     param([Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Assessments, [switch]$CheckModernization, [hashtable]$Details = @{})
     if (@($Assessments).Count -eq 0) { return "<div class='callout ok'>No VMs in this subscription are on End of Life or retired sizes.</div>" }
-    $columns = if ($CheckModernization) { 9 } else { 7 }
+    $columns = if ($CheckModernization) { 8 } else { 6 }
     $index = 0
     $rows = foreach ($a in $Assessments) {
         $anchor = Get-VmAnchorId $a.Vm
@@ -979,7 +978,7 @@ function New-VmTableHtml {
     $optionalGroup = if ($CheckModernization) { "<th colspan='2' class='group-head group-optional'>Optional &middot; v6/v7 modernization</th>" } else { '' }
     $optionalHead = if ($CheckModernization) { '<th>Modernization target</th><th>Migration path</th>' } else { '' }
     $tools = if ($Details.Count) { "<div class='vm-table-tools'><input type='checkbox' class='vm-toggle-all' id='vm-expand-all' aria-label='Show details for every VM'><label class='vm-toggle-all-label' for='vm-expand-all'><span class='off'>Expand all details</span><span class='on'>Collapse all details</span></label><span class='note'>Select Details on a VM, or the row itself, to see what to do, what changes and what to validate.</span></div>" } else { '' }
-    "<div class='vm-table-block'>$tools<div class='table-wrap'><table class='vm-table'><thead><tr><th rowspan='2'>VM</th><th rowspan='2'>Current size</th><th colspan='4' class='group-head group-required'>Required &middot; retirement remediation</th>$optionalGroup<th rowspan='2' class='num'>PAYGO / month</th></tr><tr><th>Microsoft status</th><th>Retirement target</th><th>Material changes</th><th>Next step</th>$optionalHead</tr></thead><tbody>$($rows -join "`n")</tbody></table></div></div><p class='note'>Every VM is in <code>vm-assessment.csv</code>. Material changes list only differences that need attention; the full current-vs-target comparison is in each VM's details. Monthly cost is the public pay-as-you-go list price (730 h) for comparison only; your actual rates may differ.</p>"
+    "<div class='vm-table-block'>$tools<div class='table-wrap'><table class='vm-table'><thead><tr><th rowspan='2'>VM</th><th rowspan='2'>Current size</th><th colspan='4' class='group-head group-required'>Required &middot; retirement remediation</th>$optionalGroup</tr><tr><th>Microsoft status</th><th>Retirement target</th><th>Material changes</th><th>Next step</th>$optionalHead</tr></thead><tbody>$($rows -join "`n")</tbody></table></div></div><p class='note'>Every VM is in <code>vm-assessment.csv</code>. Material changes list only differences that need attention; the full current-vs-target comparison is in each VM's details.</p>"
 }
 
 function Get-ComparisonNote {

@@ -1,0 +1,244 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" style="max-width:100%;height:auto" role="img" aria-labelledby="title description">
+  <title id="title">How VM SKU replacement recommendations are made</title>
+  <desc id="description">Executive overview of the read-only, rules-based recommendation pipeline: evidence and inventory, VM profiling and eligible targets, compatibility gates, scoring and selection, quota and confidence, and auditable recommendations. Explicit compatibility failures reject a candidate regardless of score. The twelve scoring weights total 100. Compatibility score, confidence and deployment readiness are separate assessments, not a guarantee of workload performance or physical capacity.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 8 4 0 8Z" fill="#64748b"/>
+    </marker>
+    <marker id="reject-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 8 4 0 8Z" fill="#b91c1c"/>
+    </marker>
+    <marker id="review-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 8 4 0 8Z" fill="#92400e"/>
+    </marker>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #172b4d; }
+      .heading { font-size: 40px; font-weight: 700; }
+      .subtitle { font-size: 21px; fill: #52637c; }
+      .eyebrow { font-size: 14px; font-weight: 700; letter-spacing: 1.6px; fill: #52637c; }
+      .card-title { font-size: 23px; font-weight: 700; }
+      .body { font-size: 18px; }
+      .small { font-size: 16px; fill: #52637c; }
+      .number { font-size: 18px; font-weight: 700; fill: #fff; text-anchor: middle; }
+      .panel-title { font-size: 24px; font-weight: 700; }
+      .weight-label { font-size: 18px; }
+      .weight-value { font-size: 18px; font-weight: 700; fill: #6d28d9; text-anchor: end; }
+      .branch-title { font-size: 19px; font-weight: 700; }
+      .connector { fill: none; stroke: #64748b; stroke-width: 2; marker-end: url(#arrow); }
+      .legend { font-size: 16px; fill: #52637c; }
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f5f8fc"/>
+  <rect x="60" y="46" width="6" height="70" rx="3" fill="#2563eb"/>
+  <text x="86" y="77" class="heading">How VM SKU recommendations are made</text>
+  <text x="86" y="113" class="subtitle">Evidence first. Compatibility before ranking. Readiness before action.</text>
+  <rect x="1580" y="53" width="280" height="43" rx="21" fill="#e0edff"/>
+  <text x="1720" y="81" font-size="17" font-weight="700" fill="#1d4ed8" text-anchor="middle">READ-ONLY / RULES-BASED</text>
+
+  <circle cx="69" cy="155" r="6" fill="#2563eb"/>
+  <text x="84" y="161" class="legend">Evidence and process</text>
+  <circle cx="289" cy="155" r="6" fill="#7c3aed"/>
+  <text x="304" y="161" class="legend">Scoring</text>
+  <circle cx="414" cy="155" r="6" fill="#15803d"/>
+  <text x="429" y="161" class="legend">Recommendation</text>
+  <circle cx="610" cy="155" r="6" fill="#b45309"/>
+  <text x="625" y="161" class="legend">Review required</text>
+  <circle cx="794" cy="155" r="6" fill="#b91c1c"/>
+  <text x="809" y="161" class="legend">Rejected</text>
+  <text x="1860" y="161" class="small" text-anchor="end">Logical flow, not a line-by-line execution trace</text>
+
+  <g id="evidence">
+    <rect x="60" y="204" width="280" height="316" rx="16" fill="#fff" stroke="#cbdcf5"/>
+    <rect x="60" y="204" width="280" height="7" rx="3" fill="#2563eb"/>
+    <circle cx="96" cy="247" r="17" fill="#2563eb"/>
+    <text x="96" y="253" class="number">1</text>
+    <text x="122" y="254" class="card-title">Read evidence</text>
+    <text x="82" y="301" class="body">
+      <tspan x="82">Microsoft Learn lifecycle</tspan>
+      <tspan x="82" dy="27">and migration guidance</tspan>
+      <tspan x="82" dy="40">Azure VM inventory,</tspan>
+      <tspan x="82" dy="27">SKU capabilities and</tspan>
+      <tspan x="82" dy="27">subscription restrictions</tspan>
+    </text>
+    <path d="M82 449H318" stroke="#dbe5f2"/>
+    <text x="82" y="476" class="small">
+      <tspan x="82">Cached / incomplete data</tspan>
+      <tspan x="82" dy="23">carries evidence warnings.</tspan>
+    </text>
+  </g>
+
+  <g id="profile">
+    <rect x="364" y="204" width="280" height="316" rx="16" fill="#fff" stroke="#cbdcf5"/>
+    <rect x="364" y="204" width="280" height="7" rx="3" fill="#2563eb"/>
+    <circle cx="400" cy="247" r="17" fill="#2563eb"/>
+    <text x="400" y="253" class="number">2</text>
+    <text x="426" y="254" class="card-title">Build target pool</text>
+    <text x="386" y="301" class="body">
+      <tspan x="386">Profile the VM and its</tspan>
+      <tspan x="386" dy="27">required capabilities.</tspan>
+      <tspan x="386" dy="40">Use Microsoft targets;</tspan>
+      <tspan x="386" dy="27">otherwise, same family.</tspan>
+      <tspan x="386" dy="40">Preserve architecture;</tspan>
+      <tspan x="386" dy="27">filter sizing and lifecycle.</tspan>
+    </text>
+    <text x="386" y="499" class="small">Closest-fitting sizes per series</text>
+  </g>
+
+  <g id="gates">
+    <rect x="668" y="204" width="280" height="316" rx="16" fill="#fff" stroke="#cbdcf5"/>
+    <rect x="668" y="204" width="280" height="7" rx="3" fill="#2563eb"/>
+    <circle cx="704" cy="247" r="17" fill="#2563eb"/>
+    <text x="704" y="253" class="number">3</text>
+    <text x="730" y="254" class="card-title">Check hard gates</text>
+    <text x="690" y="301" class="body">
+      <tspan x="690">VM generation / controller</tspan>
+      <tspan x="690" dy="30">Required storage features</tspan>
+      <tspan x="690" dy="30">Networking and security</tspan>
+      <tspan x="690" dy="30">NIC, disk and GPU limits</tspan>
+    </text>
+    <rect x="686" y="430" width="244" height="69" rx="9" fill="#fff7e6"/>
+    <text x="700" y="456" class="small">
+      <tspan x="700" fill="#92400e">Review / unknown is not</tspan>
+      <tspan x="700" dy="23" fill="#92400e">always a rejection.</tspan>
+    </text>
+  </g>
+
+  <g id="selection">
+    <rect x="972" y="204" width="280" height="316" rx="16" fill="#fff" stroke="#ddd0f7"/>
+    <rect x="972" y="204" width="280" height="7" rx="3" fill="#7c3aed"/>
+    <circle cx="1008" cy="247" r="17" fill="#7c3aed"/>
+    <text x="1008" y="253" class="number">4</text>
+    <text x="1034" y="254" class="card-title">Score and select</text>
+    <text x="994" y="301" class="body">
+      <tspan x="994">Weighted match: 0-100</tspan>
+      <tspan x="994" dy="30">Prefer same CPU vendor.</tspan>
+      <tspan x="994" dy="40">Available matches at 80+:</tspan>
+      <tspan x="994" dy="27">newest per family, then</tspan>
+      <tspan x="994" dy="27">score and closest fit.</tspan>
+    </text>
+    <path d="M994 449H1230" stroke="#e7def5"/>
+    <text x="994" y="476" class="small">
+      <tspan x="994">If none reach 80, rank the</tspan>
+      <tspan x="994" dy="23">available qualifying options.</tspan>
+    </text>
+  </g>
+
+  <g id="readiness">
+    <rect x="1276" y="204" width="280" height="316" rx="16" fill="#fff" stroke="#cbdcf5"/>
+    <rect x="1276" y="204" width="280" height="7" rx="3" fill="#2563eb"/>
+    <circle cx="1312" cy="247" r="17" fill="#2563eb"/>
+    <text x="1312" y="253" class="number">5</text>
+    <text x="1338" y="254" class="card-title">Assess readiness</text>
+    <text x="1298" y="301" class="body">
+      <tspan x="1298">Aggregate family and</tspan>
+      <tspan x="1298" dy="27">regional quota demand.</tspan>
+      <tspan x="1298" dy="40">Evaluate evidence quality,</tspan>
+      <tspan x="1298" dy="27">capability reductions and</tspan>
+      <tspan x="1298" dy="27">open validation items.</tspan>
+    </text>
+    <path d="M1298 449H1534" stroke="#dbe5f2"/>
+    <text x="1298" y="476" class="small">
+      <tspan x="1298">Match score, confidence and</tspan>
+      <tspan x="1298" dy="23">readiness are separate.</tspan>
+    </text>
+  </g>
+
+  <g id="recommendations">
+    <rect x="1580" y="204" width="280" height="316" rx="16" fill="#f0faf4" stroke="#b9ddc7"/>
+    <rect x="1580" y="204" width="280" height="7" rx="3" fill="#15803d"/>
+    <circle cx="1616" cy="247" r="17" fill="#15803d"/>
+    <text x="1616" y="253" class="number">6</text>
+    <text x="1642" y="254" class="card-title">Explain the result</text>
+    <text x="1602" y="301" class="body">
+      <tspan x="1602">Primary + alternatives</tspan>
+      <tspan x="1602" dy="30">Reasons and source links</tspan>
+      <tspan x="1602" dy="30">Material differences</tspan>
+      <tspan x="1602" dy="30">Confidence and readiness</tspan>
+      <tspan x="1602" dy="30">Required validation steps</tspan>
+    </text>
+    <text x="1602" y="476" class="small">
+      <tspan x="1602">Auditable HTML, Markdown,</tspan>
+      <tspan x="1602" dy="23">CSV and JSON reports</tspan>
+    </text>
+  </g>
+
+  <path class="connector" d="M340 352H360"/>
+  <path class="connector" d="M644 352H664"/>
+  <path class="connector" d="M948 352H968"/>
+  <path class="connector" d="M1252 352H1272"/>
+  <path class="connector" d="M1556 352H1576"/>
+
+  <path d="M808 520V555" fill="none" stroke="#b91c1c" stroke-width="2" marker-end="url(#reject-arrow)"/>
+  <rect x="668" y="560" width="584" height="67" rx="10" fill="#fff1f2" stroke="#fecdd3"/>
+  <text x="690" y="587" class="branch-title" fill="#991b1b">Explicit failure: reject, regardless of score</text>
+  <text x="690" y="612" class="small">Rejected candidates may be scored for audit, never recommended.</text>
+
+  <path d="M1720 520V555" fill="none" stroke="#92400e" stroke-width="2" marker-end="url(#review-arrow)"/>
+  <rect x="1276" y="560" width="584" height="67" rx="10" fill="#fff7e6" stroke="#f4d28f"/>
+  <text x="1298" y="587" class="branch-title" fill="#92400e">No available qualifying target: manual review</text>
+  <text x="1298" y="612" class="small">Quota or validation blockers remain explicit; no guessed target.</text>
+  <text x="60" y="570" class="eyebrow">HOW TO READ THE RESULT</text>
+  <text x="60" y="601" font-size="22" font-weight="600">A strong match is a candidate, not an approval.</text>
+
+  <g id="scoring-summary">
+    <rect x="60" y="658" width="1140" height="304" rx="16" fill="#fff" stroke="#ddd0f7"/>
+    <text x="86" y="699" class="panel-title">Compatibility score</text>
+    <text x="1172" y="699" font-size="24" font-weight="700" fill="#6d28d9" text-anchor="end">100 points</text>
+    <text x="86" y="728" class="small">Project-defined weights rank candidates; mandatory failures cannot be offset by points.</text>
+    <path d="M86 747H1174" stroke="#e7def5"/>
+    <g class="weight-label">
+      <text x="86" y="778">CPU vendor</text>
+      <text x="86" y="808">CPU architecture</text>
+      <text x="86" y="838">Workload family</text>
+      <text x="86" y="868">vCPU match</text>
+      <text x="86" y="898">Memory match</text>
+      <text x="86" y="928">Memory per vCPU</text>
+      <text x="650" y="778">Storage capability</text>
+      <text x="650" y="808">Disk throughput / IOPS</text>
+      <text x="650" y="838">Network capability</text>
+      <text x="650" y="868">NIC / disk limits</text>
+      <text x="650" y="898">Region / zone support</text>
+      <text x="650" y="928">Other features</text>
+    </g>
+    <g class="weight-value">
+      <text x="574" y="778" data-weight="cpuVendor">20</text>
+      <text x="574" y="808" data-weight="cpuArchitecture">10</text>
+      <text x="574" y="838" data-weight="workloadFamily">10</text>
+      <text x="574" y="868" data-weight="vCpu">10</text>
+      <text x="574" y="898" data-weight="memory">10</text>
+      <text x="574" y="928" data-weight="memoryPerVcpu">5</text>
+      <text x="1172" y="778" data-weight="storageCapability">10</text>
+      <text x="1172" y="808" data-weight="diskThroughput">5</text>
+      <text x="1172" y="838" data-weight="network">5</text>
+      <text x="1172" y="868" data-weight="nicDiskLimits">5</text>
+      <text x="1172" y="898" data-weight="zoneRegion">5</text>
+      <text x="1172" y="928" data-weight="otherFeatures">5</text>
+    </g>
+    <path d="M612 763V941" stroke="#eee7f8"/>
+  </g>
+
+  <g id="bands-and-modernization">
+    <rect x="1230" y="658" width="630" height="304" rx="16" fill="#fff" stroke="#d8e1ed"/>
+    <text x="1256" y="699" class="panel-title">Interpret the score</text>
+    <text x="1256" y="737" class="body" data-band-min="90">90-100</text>
+    <text x="1400" y="737" class="body">Excellent Match</text>
+    <text x="1256" y="767" class="body" data-band-min="80">80-89</text>
+    <text x="1400" y="767" class="body">Good Match</text>
+    <text x="1256" y="797" class="body" data-band-min="70">70-79</text>
+    <text x="1400" y="797" class="body">Acceptable with Review</text>
+    <text x="1256" y="827" class="body" data-band-min="0">Below 70</text>
+    <text x="1400" y="827" class="body">Manual Review Required</text>
+    <path d="M1256 846H1834" stroke="#dbe5f2"/>
+    <text x="1256" y="875" font-size="18" font-weight="700" fill="#6d28d9">OPTIONAL v6/v7 MODERNIZATION</text>
+    <text x="1256" y="903" class="small">
+      <tspan x="1256">Prefer newest suitable same-vendor v6/v7; use quota-aware</tspan>
+      <tspan x="1256" dy="23">fallback. Keep the existing recommendation if none qualifies.</tspan>
+    </text>
+  </g>
+
+  <path d="M60 992H1860" stroke="#cbd5e1"/>
+  <text x="60" y="1024" font-size="18" font-weight="600">Score is not a success probability or lowest-cost ranking. Catalog availability is not a capacity guarantee.</text>
+  <text x="60" y="1053" class="small">Validate workload performance, licensing and the migration path before production changes. No Azure resources are changed by this assessment.</text>
+  <text x="1860" y="1053" class="small" text-anchor="end">VMSKURetirementReport</text>
+</svg>

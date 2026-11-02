@@ -2,7 +2,11 @@
 
 **Sources checked October 21, 2026**
 
+Commercial clarification and selected retirement guidance reviewed November 2, 2026; other topics retain their review dates below.
+
 For Azure administrators, architects, infrastructure teams, and IT decision-makers.
+
+> **RI coverage and net cost: Not assessed**. This tool does not inspect reservation matching, expiration, utilization or your contracted bill. Public PAYGO estimates do not establish your net cost. Authorized billing exports are a possible later enhancement, not a current capability.
 
 > **A quota restriction is not a VM shutdown notice.** End of Life means retirement has been announced, not that a VM is already retired. Capacity growth restrictions limit deployments or expansion; these controls do not affect existing running VMs. Actual retirement is a separate event: remaining affected VMs are deallocated and stop working at the retirement date. Check the applicable series, date, and cloud before deciding what action is required. [Lifecycle overview][lifecycle] | [Retirements and capacity restrictions][retirements]
 
@@ -16,6 +20,9 @@ For Azure administrators, architects, infrastructure teams, and IT decision-make
 - [Migration, downtime, and rollback](#6-migration-downtime-and-rollback)
 - [Assessment and planning](#7-assessment-and-planning)
 - [Understanding this tool](#8-understanding-this-tool)
+- [Planning ahead for retirement](#9-planning-ahead-for-retirement)
+- [Retirement and RI eligibility](#retirement-and-ri-eligibility)
+- [Service Health notice register](#service-health-notice-register)
 - [Sources and scope](#sources-and-scope)
 
 ## 1. Lifecycle and retirement
@@ -430,6 +437,8 @@ No. The documented tool is strictly read-only. It collects inventory and evidenc
 
 No. The repository documents that RI and savings-plan coverage are not assessed. Retail PAYGO comparisons are informational and exclude agreement discounts, reservations, savings plans, and Azure Hybrid Benefit.
 
+**RI coverage and net cost: Not assessed**. See [Reserved Instances](#2-reserved-instances) for existing benefits, expiration and migration considerations.
+
 Commercial answers in this FAQ explain Microsoft policy; they are not evidence that the tool has inspected your commitments or calculated your net savings. Its optional rightsizing signal does not change the recommended size. [Tool documentation and limitations][tool]
 
 </details>
@@ -462,9 +471,53 @@ No. The tool records source provenance and distinguishes cached evidence from li
 
 </details>
 
+## 9. Planning ahead for retirement
+
+<details>
+<summary>Q46. Why start planning retirement migrations now instead of waiting?</summary>
+
+Start with inventory, assessment and a pilot now; schedule migration waves according to the actual retirement deadline and workload risk. This does **not** mean every VM must be resized immediately. An announced End of Life size is still supported until retirement, subject to its applicable restrictions.
+
+- **Quota and capacity:** Growth restrictions can limit additional quota or new deployments on affected older series. Check target-family and regional quota and target availability in the required region and zone early. Approved quota or an offered SKU does not guarantee physical capacity.
+- **Potential CPU and hardware benefits:** Some newer sizes offer newer processors and platform features that may improve performance or efficiency. Benchmark representative workloads: the same vCPU count or a newer generation does not guarantee faster performance.
+- **Disk and networking capabilities:** Some targets offer higher IOPS, throughput or networking limits, while others may reduce them. Compare current and target VM-level and disk-level limits against observed workload demand; validate temporary-disk requirements as well.
+- **Compatibility and safe cutover:** Allow time to validate the OS image, Gen1/Gen2, NVMe or SCSI, networking drivers, encryption and vendor support. Pilot, test application performance and recovery, then migrate in controlled waves.
+- **Avoid deadline pressure:** Coordinate owners, maintenance windows, licensing, reservation coverage, high availability and tested rollback. Once a source SKU is retired, it cannot be relied on as the rollback target.
+
+Starting early improves planning options; it does not guarantee target capacity, a lower bill, higher performance or a successful migration. [Capacity restrictions][retirements] | [Modernization planning][plan] | [v5 modernization][v5]
+
+</details>
+
+<a id="retirement-and-price-change-sku-scope"></a>
+
+## Retirement and RI eligibility
+
+**Which SKUs are retiring?** The selected series below have published retirement deadlines; this is not an exhaustive list of retired or retiring sizes. Use Q3, each VM's exact SKU and evidence link, and the [official retirement schedule][retirements] for full scope.
+
+| Selected series | Published retirement date | RI purchase/renewal restriction from July 1, 2026 |
+|---|---|---|
+| D, Ds, Dv2, Dsv2, Ls | May 1, 2028 | One-year RI unavailable; other terms can have separate earlier cutoffs |
+| Av2/Amv2, B-series v1, F, Fs, Fsv2, G, Gs, Lsv2 | November 15, 2028 | One-year RI unavailable; other terms can have separate earlier cutoffs |
+| Dv3, Dsv3, Ev3, Esv3 | November 15, 2029 | One-year and three-year RI unavailable |
+| Other sizes, including candidate v5/v6/v7 replacements | Check the exact series, cloud and current lifecycle evidence; version alone does not establish lifecycle status | Check the exact reservation product and term |
+
+The Dv3/Dsv3/Ev3/Esv3 retirement covers all 32 sizes in those series, excluding Azure Government, Azure operated by 21Vianet and sovereign cloud regions for **that retirement announcement only**. RI term restrictions come from the [legacy RI transition guide][legacy-ri].
+
+## Service Health notice register
+
+| Topic | Related official Microsoft guidance | Evidence boundary |
+|---|---|---|
+| VM retirement and modernization | [Retirement schedule][retirements] and [modernization guide][modernization-guide] | Supports lifecycle interpretation, not a full price-affected SKU list |
+| Regional pricing updates | [Azure Service Health][service-health] and [Azure pricing calculator][pricing-calculator] | Locate the full notice and check applicable pricing dimensions; the calculator is not the notice or proof of a future increase |
+| Reserved Instance eligibility | [Legacy RI transition][legacy-ri] and [reservation discount application][ri-discount] | Explains purchase/renewal restrictions and existing benefits, not actual tenant coverage |
+
+These are **related guidance links**, not public copies of the full notices. In [Azure Service Health][service-health], locate the event by its tracking ID using your existing read access. If the event is unavailable, obtain an authorized saved copy; do not infer missing details. The collector currently includes retirement-subtype Health Advisories only, so this guidance is not a complete list of pricing advisories.
+
 ## Sources and scope
 
 This FAQ accompanies the independently developed VM SKU Retirement tool. It is not an official Microsoft support statement or a tenant-specific assessment. Sources were checked on October 21, 2026. Dates, regional/cloud scope, eligibility, and commercial policies can change.
+
+The retirement schedule, legacy RI transition, reservation discount application and Service Health references were rechecked on November 2, 2026 for the commercial sections. This does not revalidate every other FAQ topic.
 
 Answers link to the relevant documentation. Use the dedicated lifecycle and commercial references for policy details and the repository documentation for tool behavior. Generic migration examples are not universal support guarantees.
 
@@ -511,6 +564,14 @@ This FAQ does not perform assessments or change Azure resources.
 ### Microsoft commercial references
 
 - [Legacy VM reservation transition][legacy-ri]
+- [Reservation discount application][ri-discount]
+- [Azure Service Health][service-health]
+- [Azure pricing calculator][pricing-calculator]
+- [Azure Retail Prices API][retail-prices]
+- [Azure VM pricing][vm-pricing]
+- [EA billing-account price sheet][ea-price-sheet]
+- [MCA/MPA billing-profile price sheet][mca-price-sheet]
+- [Health Advisory impacted resources][impacted-resources]
 - [Reservation exchanges and refunds][exchange]
 - [Reservation trade-ins][trade-in]
 - [Reserved VM instance-size flexibility][vm-flexibility]
@@ -540,6 +601,14 @@ This FAQ does not perform assessments or change Azure resources.
 [quotas]: https://learn.microsoft.com/en-us/azure/virtual-machines/quotas
 [capacity]: https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-overview
 [legacy-ri]: https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/manage-legacy-vm-reservations-after-july-1-2026
+[ri-discount]: https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/reservation-discount-application
+[service-health]: https://learn.microsoft.com/en-us/azure/service-health/overview
+[pricing-calculator]: https://azure.microsoft.com/en-us/pricing/calculator/
+[retail-prices]: https://learn.microsoft.com/en-us/rest/api/cost-management/retail-prices/azure-retail-prices
+[vm-pricing]: https://azure.microsoft.com/en-us/pricing/details/virtual-machines/windows/
+[ea-price-sheet]: https://learn.microsoft.com/en-us/rest/api/cost-management/price-sheet/download-by-billing-account
+[mca-price-sheet]: https://learn.microsoft.com/en-us/rest/api/cost-management/price-sheet/download-by-billing-profile
+[impacted-resources]: https://learn.microsoft.com/en-us/azure/service-health/impacted-resources-retirements
 [exchange]: https://learn.microsoft.com/en-us/azure/cost-management-billing/reservations/exchange-and-refund-azure-reservations
 [trade-in]: https://learn.microsoft.com/en-us/azure/cost-management-billing/savings-plan/reservation-trade-in
 [vm-flexibility]: https://learn.microsoft.com/en-us/azure/virtual-machines/reserved-vm-instance-size-flexibility

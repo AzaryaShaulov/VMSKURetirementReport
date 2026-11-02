@@ -57,6 +57,18 @@ async function checks(browser) {
     ids.every(id => document.querySelector(`details#${id}`)), referenceIds));
   ok('subscription navigation targets exist', await checkNavigation(p));
   ok('subscription headings have compact desktop padding', await checkHeading(p, 4.4));
+  const tableShape = await p.locator('table.vm-table').evaluate(table => {
+    const header = table.querySelector('thead tr');
+    const columns = [...header.cells].reduce((sum, cell) => sum + cell.colSpan, 0);
+    return {
+      hasPaygo: table.querySelector('thead').textContent.includes('PAYGO / month'),
+      columns,
+      rowsAligned: [...table.querySelectorAll('tr.vm-summary-row')].every(row => row.cells.length === columns),
+      detailsAligned: [...table.querySelectorAll('tr.vm-detail-row')].every(row => row.cells[0].colSpan === columns),
+    };
+  });
+  ok('VM table has no PAYGO / month column', !tableShape.hasPaygo);
+  ok('summary and detail rows span the table columns', [6, 8].includes(tableShape.columns) && tableShape.rowsAligned && tableShape.detailsAligned);
   const display = i => p.locator('tr.vm-detail-row').nth(i).evaluate(e => getComputedStyle(e).display);
   ok('detail rows are collapsed by default', await p.locator('tr.vm-detail-row').evaluateAll(els => els.length > 0 && els.every(e => getComputedStyle(e).display === 'none')));
 

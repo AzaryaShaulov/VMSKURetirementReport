@@ -129,6 +129,7 @@ agent workflow.
 - [Synthetic sample report](examples/sample-report/index.html)
 - [Data sources and permissions](skills/vm-sku-retirement-report/references/data-sources.md)
 - [Assessment methodology](skills/vm-sku-retirement-report/references/methodology.md) and [scoring](skills/vm-sku-retirement-report/references/scoring.md)
+- [Recommendation logic and scoring flow (SVG)](docs/images/recommendation-logic.svg)
 - [Contributing and development](CONTRIBUTING.md)
 - [Support](SUPPORT.md) · [Security reporting](SECURITY.md)
 

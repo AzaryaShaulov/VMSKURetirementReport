@@ -181,9 +181,10 @@ handled as confidential inventory data.
 | `run.log` | Run transcript; account is masked by default. |
 | `data/`, `snapshot/` | Optional raw data or saved Azure responses; especially sensitive. |
 
-CSV, JSON, and Markdown include every VM. HTML defaults to VMs with an announced retirement and required action. Prices
-are informational public PAYGO estimates; they do not include enterprise discounts, reservations, savings plans, or
-Azure Hybrid Benefit.
+CSV, JSON, and Markdown include every VM. HTML defaults to VMs with an announced retirement and required action. The HTML
+VM table does not show monthly prices. When pricing is enabled, current and target estimates remain in `vm-assessment.csv`
+and `assessment.json`. These are informational public PAYGO estimates; they do not include enterprise discounts,
+reservations, savings plans, or Azure Hybrid Benefit.
 
 ## How the assessment works
 
